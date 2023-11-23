@@ -4,18 +4,18 @@ import axios from "axios"
 
 export default function useFetch(url:any){
 
-    const [data,setData] = useState(null)
+    const [data,setData] = useState([])
     const [error,setError] = useState(null)
     const [loading,setLoading] = useState(false)
     const useFetch = axios.create({
-        baseURL:"https://test.zuhot-api.id.vn/api",
+        // baseURL:"https://test.zuhot-api.id.vn/api",
+        baseURL:"http://localhost:8080/api",
         headers:{
-            "zuhot-key":"abc123456"
+            "zuhot-key":"abc123456",
         }
     })
     useEffect(() => {
-        (
-            async function(){
+            const init = async () => {
                 try{
                     setLoading(true)
                     const response = await useFetch.get(url)
@@ -25,8 +25,9 @@ export default function useFetch(url:any){
                 }finally{
                     setLoading(false)
                 }
-            }
-        )
+            };
+            init().then(r => "");
+
     }, [url])
 
     return { data, error, loading }
