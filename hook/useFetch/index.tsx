@@ -1,24 +1,24 @@
 import {useEffect, useState} from "react"
 import axios from "axios"
 
+export const fetchAPI = axios.create({
+    // baseURL:"https://test.zuhot-api.id.vn/api",
+    baseURL: "http://localhost:8080/api",
+    headers: {
+        "zuhot-key": "abc123456",
+    }
+})
 
-export default function useFetch(url?: any) {
-
+export function useFetch(url?: any) {
     const [data, setData] = useState([])
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
-    const fetch = axios.create({
-        // baseURL:"https://test.zuhot-api.id.vn/api",
-        baseURL: "http://localhost:8080/api",
-        headers: {
-            "zuhot-key": "abc123456",
-        }
-    })
+
     useEffect(() => {
         const init = async () => {
             try {
                 setLoading(true)
-                const response = await fetch.get(url)
+                const response = await fetchAPI.get(url)
                 setData(response.data)
             } catch (err: any) {
                 setError(err)
@@ -30,6 +30,7 @@ export default function useFetch(url?: any) {
 
     }, [url])
 
-    return {data, error, loading, fetch}
+    return {data, error, loading}
 
 }
+

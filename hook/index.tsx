@@ -1,5 +1,6 @@
-import useFetch from "./useFetch"
+import {useFetch, fetchAPI} from "./useFetch"
 
 export {
-    useFetch
+    useFetch,
+    fetchAPI
 }
