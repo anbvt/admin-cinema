@@ -1,11 +1,12 @@
 "use client"
 import React, {useEffect, useState} from "react";
 import {Bar, DualAxes} from '@ant-design/plots';
-import {Form, Select} from "antd";
+import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 
 
 const DashBoard = () => {
+    const rootMovie = useFetch('/movie').data
     const [total, setTotal] = useState([]);
     const [movie, setMovie] = useState([]);
     const [formValues, setFormValues] = useState<any>({});
@@ -73,16 +74,18 @@ const DashBoard = () => {
                 })
                 .catch((error) => {
                     console.log('fetch data failed', error);
+                    setTotal([]);
                 });
 
         }
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            fetchAPI.get(`http://localhost:8080/api/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
+            fetchAPI.get(`/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
                 .then((response) => response.data)
-                .then((data) => data.statusCode == 400 || data.status == 500 ? setMovie([]) : setMovie(data))
+                .then((data) => setMovie(data))
                 .catch((error) => {
+                    setMovie([])
                     console.log('fetch data failed', error);
                 });
         }
@@ -94,6 +97,11 @@ const DashBoard = () => {
     const handleMovieChange = () => {
         formMovie.submit();
     };
+
+    const handleOnExport = () =>{
+        console.log(movie)
+    }
+
     return (
         <div className="container">
             <div className="mt-3">
@@ -152,15 +160,24 @@ const DashBoard = () => {
                         name="movie"
                         label="Phim"
                     >
-                        <Select
+                        <AutoComplete
                             placeholder="Chọn phim"
-                            allowClear
-                            options={useFetch('/movie').data.map((s: any) => ({label: s.name, value: s.name}))}
+                            options={rootMovie.map((s: any) => ({label: s.name, value: s.name}))}
+                            filterOption={(inputValue, option) =>
+                                option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                            }
                             onSelect={handleMovieChange}
-                        >
-                        </Select>
+                            allowClear
+                        />
                     </Form.Item>
                 </Form>
+                {movie.length > 0 && (<>
+                    <Row>
+                        <Col md={12}>
+                            <Button onClick={handleOnExport}>Export</Button>
+                        </Col>
+                    </Row>
+                </>)}
                 <DualAxes {...configMovie} />
             </div>
         </div>
