@@ -3,7 +3,8 @@ import React, {useEffect, useState} from "react";
 import {Bar, DualAxes} from '@ant-design/plots';
 import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
-
+import * as XLSX from "xlsx"
+import {writeFileXLSX} from "xlsx";
 
 const DashBoard = () => {
     const rootMovie = useFetch('/movie').data
@@ -98,8 +99,12 @@ const DashBoard = () => {
         formMovie.submit();
     };
 
-    const handleOnExport = () =>{
+    const handleOnExport = () => {
         console.log(movie)
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(movie);
+        XLSX.utils.book_append_sheet(wb, ws, 'data');
+        XLSX.writeFileXLSX(wb, 'MySheet.xlsx')
     }
 
     return (
