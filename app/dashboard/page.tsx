@@ -4,10 +4,10 @@ import {Bar, DualAxes} from '@ant-design/plots';
 import {Form, Select} from "antd";
 import {useFetch} from "@hooks";
 
-const dashBoard = () => {
+const DashBoard = () => {
     const [total, setTotal] = useState([]);
     const [movie, setMovie] = useState([]);
-    const [formValues, setFormValues] = useState({});
+    const [formValues, setFormValues] = useState<any>({});
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
 
@@ -64,10 +64,10 @@ const dashBoard = () => {
     }, []);
     const onFinishTotal = (values: any) => {
         if (values.year != undefined && values.branch != undefined) {
-            fetch(`http://localhost:8080/api/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
-                .then((response) => response.json())
-                .then((json) => {
-                    setTotal(json);
+            useFetch().fetch.get(`/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
+                .then((response) => response.data)
+                .then((data) => {
+                    setTotal(data);
                     setFormValues(values);
                 })
                 .catch((error) => {
@@ -78,9 +78,9 @@ const dashBoard = () => {
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            fetch(`http://localhost:8080/api/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
-                .then((response) => response.json())
-                .then((json) => json.statusCode == 400 ? setMovie([]) : setMovie(json))
+            useFetch().fetch.get(`http://localhost:8080/api/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
+                .then((response) => response.data)
+                .then((data) => data.statusCode == 400 || data.status == 500 ? setMovie([]) : setMovie(data))
                 .catch((error) => {
                     console.log('fetch data failed', error);
                 });
@@ -127,7 +127,10 @@ const dashBoard = () => {
                         <Select
                             placeholder="Chọn năm"
                             allowClear
-                            options={useFetch('/dashboard/fillYear').data.map((s: any) => ({label: s.year, value: s.year}))}
+                            options={useFetch('/dashboard/fillYear').data.map((s: any) => ({
+                                label: s.year,
+                                value: s.year
+                            }))}
                             onSelect={handleTotalChange}
                         ></Select>
                     </Form.Item>
@@ -162,4 +165,4 @@ const dashBoard = () => {
         </div>
     );
 }
-export default dashBoard;
+export default DashBoard;
