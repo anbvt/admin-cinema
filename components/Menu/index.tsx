@@ -1,9 +1,9 @@
 "use client"
 
-import { AppstoreOutlined, DesktopOutlined, MailOutlined, SettingOutlined } from "@ant-design/icons";
-import { Menu, MenuProps } from "antd";
+import {AppstoreOutlined, DesktopOutlined, SettingOutlined} from "@ant-design/icons";
+import {Menu, MenuProps} from "antd";
 import Link from "next/link";
-import { useState } from "react";
+import {useState} from "react";
 
 type MenuItem = Required<MenuProps>['items'][number];
 

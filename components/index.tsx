@@ -1,3 +1,4 @@
+"use client"
 import Menu from "./Menu";
 import Table from "./Table";
 
