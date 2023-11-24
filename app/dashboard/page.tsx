@@ -2,7 +2,8 @@
 import React, {useEffect, useState} from "react";
 import {Bar, DualAxes} from '@ant-design/plots';
 import {Form, Select} from "antd";
-import {useFetch} from "@hooks";
+import {fetchAPI, useFetch} from "@hooks";
+
 
 const DashBoard = () => {
     const [total, setTotal] = useState([]);
@@ -64,7 +65,7 @@ const DashBoard = () => {
     }, []);
     const onFinishTotal = (values: any) => {
         if (values.year != undefined && values.branch != undefined) {
-            useFetch().fetch.get(`/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
+            fetchAPI.get(`/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
                 .then((response) => response.data)
                 .then((data) => {
                     setTotal(data);
@@ -78,7 +79,7 @@ const DashBoard = () => {
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            useFetch().fetch.get(`http://localhost:8080/api/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
+            fetchAPI.get(`http://localhost:8080/api/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
                 .then((response) => response.data)
                 .then((data) => data.statusCode == 400 || data.status == 500 ? setMovie([]) : setMovie(data))
                 .catch((error) => {
