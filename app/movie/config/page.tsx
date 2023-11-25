@@ -1,5 +1,4 @@
-import { Table } from "@components";
-import { useFetch } from "@hooks";
+import {Table} from "@components";
 
 const MovieConfigPage = () => {
 

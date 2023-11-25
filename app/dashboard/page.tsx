@@ -1,19 +1,21 @@
 "use client"
 import React, {useEffect, useState} from "react";
 import {Bar, DualAxes} from '@ant-design/plots';
-import {Form, Select} from "antd";
+import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
-
+import * as XLSX from "xlsx"
+import {writeFileXLSX} from "xlsx";
 
 const DashBoard = () => {
-    const [total, setTotal] = useState([]);
+    const rootMovie = useFetch('/movie').data
+    const {data: total, setUri} = useFetch('');
     const [movie, setMovie] = useState([]);
     const [formValues, setFormValues] = useState<any>({});
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
 
     const configTotal = {
-        data: total,
+        data: total || [],
         xField: 'totalPrice',
         yField: 'month',
         seriesField: 'month',
@@ -65,24 +67,26 @@ const DashBoard = () => {
     }, []);
     const onFinishTotal = (values: any) => {
         if (values.year != undefined && values.branch != undefined) {
-            fetchAPI.get(`/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
-                .then((response) => response.data)
-                .then((data) => {
-                    setTotal(data);
-                    setFormValues(values);
-                })
-                .catch((error) => {
-                    console.log('fetch data failed', error);
-                });
+            setUri(`/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
+                // .then((response) => response.data)
+                // .then((data) => {
+                //     setTotal(data);
+                //     setFormValues(values);
+                // })
+                // .catch((error) => {
+                //     console.log('fetch data failed', error);
+                //     setTotal([]);
+                // });
 
         }
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            fetchAPI.get(`http://localhost:8080/api/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
+            fetchAPI.get(`/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
                 .then((response) => response.data)
-                .then((data) => data.statusCode == 400 || data.status == 500 ? setMovie([]) : setMovie(data))
+                .then((data) => setMovie(data))
                 .catch((error) => {
+                    setMovie([])
                     console.log('fetch data failed', error);
                 });
         }
@@ -94,6 +98,15 @@ const DashBoard = () => {
     const handleMovieChange = () => {
         formMovie.submit();
     };
+
+    const handleOnExport = () => {
+        console.log(movie)
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(movie);
+        XLSX.utils.book_append_sheet(wb, ws, 'data');
+        XLSX.writeFileXLSX(wb, 'MySheet.xlsx')
+    }
+
     return (
         <div className="container">
             <div className="mt-3">
@@ -115,7 +128,7 @@ const DashBoard = () => {
                         <Select
                             placeholder="Chọn chi nhánh"
                             allowClear
-                            options={useFetch('/branch').data.map((s: any) => ({label: s.name, value: s.name}))}
+                            options={useFetch('/branch').data?.map((s: any) => ({label: s.name, value: s.name}))}
                             onSelect={handleTotalChange}
                         >
                         </Select>
@@ -128,7 +141,7 @@ const DashBoard = () => {
                         <Select
                             placeholder="Chọn năm"
                             allowClear
-                            options={useFetch('/dashboard/fillYear').data.map((s: any) => ({
+                            options={useFetch('/dashboard/fillYear').data?.map((s: any) => ({
                                 label: s.year,
                                 value: s.year
                             }))}
@@ -152,15 +165,24 @@ const DashBoard = () => {
                         name="movie"
                         label="Phim"
                     >
-                        <Select
+                        <AutoComplete
                             placeholder="Chọn phim"
-                            allowClear
-                            options={useFetch('/movie').data.map((s: any) => ({label: s.name, value: s.name}))}
+                            options={rootMovie?.map((s: any) => ({label: s.name, value: s.name}))}
+                            filterOption={(inputValue, option) =>
+                                option!.value?.toString().toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                            }
                             onSelect={handleMovieChange}
-                        >
-                        </Select>
+                            allowClear
+                        />
                     </Form.Item>
                 </Form>
+                {movie.length > 0 && (<>
+                    <Row>
+                        <Col md={12}>
+                            <Button onClick={handleOnExport}>Export</Button>
+                        </Col>
+                    </Row>
+                </>)}
                 <DualAxes {...configMovie} />
             </div>
         </div>
