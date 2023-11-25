@@ -1,25 +1,16 @@
 import {useEffect, useState} from "react"
 import { fetchAPI } from "../fetchAPI"
 
-export function useFetch(url?: any, param?:any) {
+export function useFetch(url?: any, param?: any) {
     let [data, setData]  = useState<any>();
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
     const [params, setParam] = useState(param);
     const [uri, setUri] = useState(url);
-    // const setParam = (obj:any) => {
-    //     param = obj;
-    // }
-    
-    // const setUrl = (uri: string) => {
-    //     url= uri;
-    //     console.log(uri);
-    // }
 
     useEffect(() => {
         const init = async () => {
             try {
-                // setLoading(true)
                 let response = null;
                 if(params != null){
                     response = (await fetchAPI.get(uri, {params: params})).data;
