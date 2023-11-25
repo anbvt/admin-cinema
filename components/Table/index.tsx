@@ -1,89 +1,116 @@
-"use server"
+"use client"
+import React, { useEffect, useState } from "react";
+import { DownOutlined } from '@ant-design/icons';
+import type { TableColumnsType } from 'antd';
+import { Badge, Button, Dropdown, Space, Table } from 'antd';
+import { fetchAPI, useFetch } from "@hooks";
 
-import { Space, Table, Tag } from "antd";
-import { ColumnsType } from "antd/es/table";
+interface DataType {
+    id: string;
+    key: React.Key;
+    name: string;
+}
+
+interface ExpandedDataType {
+    key: React.Key;
+    id: string,
+    branchId: string,
+    date: string;
+    name: string;
+    upgradeNum: string;
+}
 
 const TableComponent = () => {
-    interface DataType {
-        key: string;
-        name: string;
-        age: number;
-        address: string;
-        tags: string[];
-    }
+    const [dataMovie, setDataMovie] = useState([]);
+    const [dataDetailMovieConfig, setdataDetailMovieConfig] = useState([]);
+    const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+    useEffect(() => {
+        fetchAPI.get(`/movie`)
+            .then((response) => response.data)
+            .then((data) => {
+                setDataMovie(data);
+                console.log(data);
 
-    const columns: ColumnsType<DataType> = [
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
-        },
-        {
-            title: 'Age',
-            dataIndex: 'age',
-            key: 'age',
-        },
-        {
-            title: 'Address',
-            dataIndex: 'address',
-            key: 'address',
-        },
-        {
-            title: 'Tags',
-            key: 'tags',
-            dataIndex: 'tags',
-            // render: (_, { tags }) => (
-            //     <>
-            //         {tags.map((tag) => {
-            //             let color = tag.length > 5 ? 'geekblue' : 'green';
-            //             if (tag === 'loser') {
-            //                 color = 'volcano';
-            //             }
-            //             return (
-            //                 <Tag color={color} key={tag}>
-            //                     {tag.toUpperCase()}
-            //                 </Tag>
-            //             );
-            //         })}
-            //     </>
-            // ),
-        },
-        {
-            title: 'Action',
-            key: 'action',
-            // render: (_, record) => (
-            //     <Space size="middle">
-            //         <a>Invite {record.name}</a>
-            //         <a>Delete</a>
-            //     </Space>
-            // ),
-        },
+            })
+            .catch((error) => {
+                console.log('fetch data failed', error);
+                setDataMovie([]);
+            });
+    }, []);
+
+
+
+    const items = [
+        { key: '1', label: 'Action 1' },
+        { key: '2', label: 'Action 2' },
     ];
-    const data: DataType[] = [
-        {
-            key: '1',
-            name: 'John Brown',
-            age: 32,
-            address: 'New York No. 1 Lake Park',
-            tags: ['nice', 'developer'],
-        },
-        {
-            key: '2',
-            name: 'Jim Green',
-            age: 42,
-            address: 'London No. 1 Lake Park',
-            tags: ['loser'],
-        },
-        {
-            key: '3',
-            name: 'Joe Black',
-            age: 32,
-            address: 'Sydney No. 1 Lake Park',
-            tags: ['cool', 'teacher'],
-        },
+
+    const expandedRowRender = (record: any) => {
+        const columns: TableColumnsType<ExpandedDataType> = [
+            { title: 'Chi nhánh', dataIndex: 'branchId', key: 'branchId' },
+            { title: 'Date', dataIndex: 'date', key: 'date' },
+            { title: 'Name', dataIndex: 'name', key: 'name' },
+            {
+                title: 'Status',
+                key: 'state',
+                render: () => <Badge status="success" text="Finished" />,
+            },
+            { title: 'Upgrade Status', dataIndex: 'upgradeNum', key: 'upgradeNum' },
+            {
+                title: 'Action',
+                dataIndex: 'operation',
+                key: 'operation',
+                render: () => (
+                    <Space size="middle">
+                        <a>Pause</a>
+                        <a>Stop</a>
+                        <Dropdown menu={{ items }}>
+                            <a>
+                                More <DownOutlined />
+                            </a>
+                        </Dropdown>
+                    </Space>
+                ),
+            },
+        ];
+
+        fetchAPI.get(`/movieConfig/findAll?movieId=${record}`)
+            .then((response) => response.data)
+            .then((data) => {
+                setdataDetailMovieConfig(data);
+                console.log(data);
+
+            })
+            .catch((error) => {
+                console.log('fetch data failed', error);
+                setdataDetailMovieConfig([]);
+            });
+
+        const data = dataDetailMovieConfig;
+        console.log(data);
+
+        return <Table columns={columns} dataSource={data} pagination={false} />;
+    };
+
+    const columns: TableColumnsType<DataType> = [
+        { title: 'Name', dataIndex: 'name', key: 'name' },
+
     ];
+
+    const data: DataType[] = dataMovie;
     return (
-        <Table columns={columns} dataSource={data} />
+        <>
+
+            <Table
+                columns={columns}
+                expandable={{
+                    expandedRowRender: (record) => expandedRowRender(record.id),
+                }}
+                dataSource={data}
+                size="middle"
+            />
+
+        </>
     );
 }
 export default TableComponent;
