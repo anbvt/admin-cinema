@@ -19,9 +19,6 @@ const DashBoard = () => {
     const [formMovie] = Form.useForm();
     const rootMovie = useFetch('/movie').data
     const rootYear = useFetch('/dashboard/fillYear').data
-
-    console.log(session?.user)
-
     useEffect(() => {
         handleTotalChange()
     }, []);
