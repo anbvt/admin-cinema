@@ -3,7 +3,9 @@ import React, {useEffect, useState} from "react";
 import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
-import {BarChart} from "@tremor/react";
+import {BarChart, Card, Title} from "@tremor/react";
+import {CustomTooltipType} from "@tremor/react/dist/components/chart-elements/common/CustomTooltipProps";
+import {NumberUtils} from "../../../util/NumberUtils";
 
 
 const DashBoard = () => {
@@ -13,7 +15,6 @@ const DashBoard = () => {
     const [formValues, setFormValues] = useState<any>({});
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
-
 
 
     useEffect(() => {
@@ -52,66 +53,77 @@ const DashBoard = () => {
         XLSX.writeFileXLSX(wb, `Data.xlsx`)
     }
 
+    const customTooltip :  React.ComponentType<CustomTooltipType> = ({ payload, active }) => {
+        if (!active || !payload) return null;
+        return (
+            <div className="w-56 rounded-tremor-default text-tremor-default bg-tremor-background p-2 shadow-tremor-dropdown border border-tremor-border">
+                {payload.map((category, idx) => (
+                    <div key={idx} className="flex flex-1 space-x-2.5">
+                        <div className={`w-1 flex flex-col bg-${category.color}-500 rounded`} />
+                        <div className="space-y-1">
+                            <p className="text-tremor-content">{category.dataKey}</p>
+                            <p className="font-medium text-tremor-content-emphasis">{NumberUtils.formatCurrency(category.value as number || 0) }</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
     return (
         <div className="container">
             <div className="mt-3">
-                <h1>Tổng doanh thu</h1>
-                <Form
-                    form={formTotal}
-                    onFinish={onFinishTotal}
-                    layout={"inline"}
-                    name="control-hooks"
-                    style={{
-                        maxWidth: 'none',
-                    }}
-                >
-                    <Form.Item
-                        name="branch"
-                        label="Chi Nhánh"
-                        initialValue={"Hưng Thịnh"}
+                <Card>
+                    <Title>Tổng doanh thu</Title>
+                    <Form
+                        form={formTotal}
+                        onFinish={onFinishTotal}
+                        layout={"inline"}
+                        name="control-hooks"
+                        style={{
+                            maxWidth: 'none',
+                        }}
                     >
-                        <Select
-                            placeholder="Chọn chi nhánh"
-                            allowClear
-                            options={useFetch('/branch').data?.map((s: any) => ({label: s.name, value: s.name}))}
-                            onSelect={handleTotalChange}
+                        <Form.Item
+                            name="branch"
+                            label="Chi Nhánh"
+                            initialValue={"Hưng Thịnh"}
                         >
-                        </Select>
-                    </Form.Item>
-                    <Form.Item
-                        name="year"
-                        label="Năm"
-                        initialValue={new Date().getFullYear()}
-                    >
-                        <Select
-                            placeholder="Chọn năm"
-                            allowClear
-                            options={useFetch('/dashboard/fillYear').data?.map((s: any) => ({
-                                label: s.year,
-                                value: s.year
-                            }))}
-                            onSelect={handleTotalChange}
-                        ></Select>
-                    </Form.Item>
-                </Form>
-                <div><BarChart
-                    animationDuration={2}
-                    categories={[
-                        'totalPrice'
-                    ]}
-                    className="h-[500px]"
-                    colors={[
-                        'teal'
-                    ]}
-                    data={total}
-                    index="month"
-                    layout="vertical"
-                    showAnimation
-                    showGridLines
-                    showLegend
-                    showXAxis
-                    showYAxis
-                /></div>
+                            <Select
+                                placeholder="Chọn chi nhánh"
+                                allowClear
+                                options={useFetch('/branch').data?.map((s: any) => ({label: s.name, value: s.name}))}
+                                onSelect={handleTotalChange}
+                            >
+                            </Select>
+                        </Form.Item>
+                        <Form.Item
+                            name="year"
+                            label="Năm"
+                            initialValue={new Date().getFullYear()}
+                        >
+                            <Select
+                                placeholder="Chọn năm"
+                                allowClear
+                                options={useFetch('/dashboard/fillYear').data?.map((s: any) => ({
+                                    label: s.year,
+                                    value: s.year
+                                }))}
+                                onSelect={handleTotalChange}
+                            ></Select>
+                        </Form.Item>
+                    </Form>
+                    <BarChart
+                        className="h-[500px]"
+                        data={total}
+                        index="month"
+                        categories={["totalPrice"]}
+                        colors={["rose"]}
+                        showAnimation
+                        layout="vertical"
+                        customTooltip={customTooltip}
+                    />
+                </Card>
+
             </div>
             <div className="my-3">
                 <h1>Thống kê phim</h1>
