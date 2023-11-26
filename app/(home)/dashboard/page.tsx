@@ -4,7 +4,6 @@ import {Bar, DualAxes} from '@ant-design/plots';
 import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
-import {writeFileXLSX} from "xlsx";
 
 const DashBoard = () => {
     const rootMovie = useFetch('/movie').data
@@ -67,22 +66,13 @@ const DashBoard = () => {
     }, []);
     const onFinishTotal = (values: any) => {
         if (values.year != undefined && values.branch != undefined) {
-            setUri(`/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
-                // .then((response) => response.data)
-                // .then((data) => {
-                //     setTotal(data);
-                //     setFormValues(values);
-                // })
-                // .catch((error) => {
-                //     console.log('fetch data failed', error);
-                //     setTotal([]);
-                // });
-
+            setUri(`/v2/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
+            setFormValues(values)
         }
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            fetchAPI.get(`/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
+            fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
                 .then((response) => response.data)
                 .then((data) => setMovie(data))
                 .catch((error) => {
@@ -91,7 +81,6 @@ const DashBoard = () => {
                 });
         }
     }
-
     const handleTotalChange = () => {
         formTotal.submit();
     };
@@ -104,7 +93,7 @@ const DashBoard = () => {
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(movie);
         XLSX.utils.book_append_sheet(wb, ws, 'data');
-        XLSX.writeFileXLSX(wb, 'MySheet.xlsx')
+        XLSX.writeFileXLSX(wb, `${movie.movieName}.xlsx`)
     }
 
     return (
