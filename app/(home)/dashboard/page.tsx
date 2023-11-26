@@ -10,14 +10,16 @@ import {useSession} from "next-auth/react";
 
 
 const DashBoard = () => {
-    const rootMovie = useFetch('/movie').data
+
+    const {data: session} = useSession();
     const {data: total, setUri} = useFetch('');
     const [movie, setMovie] = useState([]);
     const [formValues, setFormValues] = useState<any>({});
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
+    const rootMovie = useFetch('/movie').data
+    const rootYear = useFetch('/dashboard/fillYear').data
 
-    const {data: session } = useSession();
     console.log(session?.user)
 
     useEffect(() => {
@@ -55,17 +57,18 @@ const DashBoard = () => {
         XLSX.writeFileXLSX(wb, `Data.xlsx`)
     }
 
-    const customTooltip :  React.ComponentType<CustomTooltipType> = ({ payload, active }) => {
+    const customTooltip: React.ComponentType<CustomTooltipType> = ({payload, active}) => {
         if (!active || !payload) return null;
         console.log(payload)
         return (
-            <div className="w-56 rounded-tremor-default text-tremor-default bg-tremor-background p-2 shadow-tremor-dropdown border border-tremor-border">
+            <div
+                className="w-56 rounded-tremor-default text-tremor-default bg-tremor-background p-2 shadow-tremor-dropdown border border-tremor-border">
                 {payload.map((category, idx) => (
                     <div key={idx} className="flex flex-1 space-x-2.5">
-                        <div className={`w-1 flex flex-col bg-${category.color}-500 rounded`} />
+                        <div className={`w-1 flex flex-col bg-${category.color}-500 rounded`}/>
                         <div className="space-y-1">
-                            <p className="text-tremor-content" >{category.dataKey}</p>
-                            <p className="font-medium text-tremor-content-emphasis">{NumberUtils.formatCurrency(category.value as number || 0) }</p>
+                            <p className="text-tremor-content">{category.dataKey}</p>
+                            <p className="font-medium text-tremor-content-emphasis">{NumberUtils.formatCurrency(category.value as number || 0)}</p>
                         </div>
                     </div>
                 ))}
@@ -89,7 +92,8 @@ const DashBoard = () => {
                         <Form.Item
                             name="branch"
                             label="Chi Nhánh"
-                            initialValue={"Hưng Thịnh"}
+                            initialValue={session?.user.role != 2 ? session?.user.branchid : "cn1"}
+                            hidden={session?.user.role != 2}
                         >
                             <Select
                                 placeholder="Chọn chi nhánh"
@@ -107,7 +111,7 @@ const DashBoard = () => {
                             <Select
                                 placeholder="Chọn năm"
                                 allowClear
-                                options={useFetch('/dashboard/fillYear').data?.map((s: any) => ({
+                                options={rootYear?.map((s: any) => ({
                                     label: s.year,
                                     value: s.year
                                 }))}
