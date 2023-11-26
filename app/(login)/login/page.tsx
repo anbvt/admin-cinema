@@ -1,13 +1,15 @@
 "use client"
-import { signIn } from "next-auth/react";
+import {signIn, useSession} from "next-auth/react";
 import { useForm } from "react-hook-form";
+import {redirect} from "next/navigation";
 
 const LoginPage = () => {
-
+    const {data : session} = useSession();
+    if(session) return redirect("/");
     const { handleSubmit, register, formState: { errors } } = useForm({
         defaultValues: {
-            email: '',
-            password: ''
+            email: 'khaiminh0401@gmail.com',
+            password: '04012003'
         }
     });
 
