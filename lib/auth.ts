@@ -20,7 +20,8 @@ export const authconfig: NextAuthOptions = {
                         return {
                             id: cus.id,
                             name: cus.name,
-                            email: cus.email
+                            email: cus.email,
+                            role: cus.role
                         };
                     }
                 } catch (error: any) {
