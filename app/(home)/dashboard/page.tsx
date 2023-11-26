@@ -6,6 +6,7 @@ import * as XLSX from "xlsx"
 import {BarChart, Card, Title} from "@tremor/react";
 import {CustomTooltipType} from "@tremor/react/dist/components/chart-elements/common/CustomTooltipProps";
 import {NumberUtils} from "../../../util/NumberUtils";
+import { useSession } from "next-auth/react";
 
 
 const DashBoard = () => {
@@ -15,6 +16,7 @@ const DashBoard = () => {
     const [formValues, setFormValues] = useState<any>({});
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
+    const {data : session} = useSession();
 
 
     useEffect(() => {
@@ -39,7 +41,6 @@ const DashBoard = () => {
     }
     const handleTotalChange = () => {
         formTotal.submit();
-        console.log(total)
     };
     const handleMovieChange = () => {
         formMovie.submit();
@@ -86,12 +87,13 @@ const DashBoard = () => {
                         <Form.Item
                             name="branch"
                             label="Chi Nhánh"
-                            initialValue={"Hưng Thịnh"}
+                            initialValue={session?.user.role != 2? session?.user.branchid :"cn1"}
+                            hidden={session?.user.role != 2}
                         >
                             <Select
                                 placeholder="Chọn chi nhánh"
                                 allowClear
-                                options={useFetch('/branch').data?.map((s: any) => ({label: s.name, value: s.name}))}
+                                options={session?.user.role != 2 ? [] : useFetch('/branch').data?.map((s: any) => ({label: s.name, value: s.id}))}
                                 onSelect={handleTotalChange}
                             >
                             </Select>

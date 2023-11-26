@@ -5,7 +5,7 @@ import {redirect} from "next/navigation";
 
 const LoginPage = () => {
     const {data : session} = useSession();
-    if(session) return redirect("/");
+    // if(session) return redirect("/");
     const { handleSubmit, register, formState: { errors } } = useForm({
         defaultValues: {
             email: 'khaiminh0401@gmail.com',
