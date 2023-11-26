@@ -18,20 +18,22 @@ const MenuComponent = () => {
         icon?: React.ReactNode,
         children?: MenuItem[],
         type?: 'group',
+        hidden?: false
     ): MenuItem {
-        return {
+
+        return !hidden ? {
             key,
             icon,
             children,
             label,
             type,
-        } as MenuItem;
+        } : {} as MenuItem;
     }
     
     const items: MenuItem[] = [
         getItem(<Link href={"/"}>Trang chủ</Link>, 'home'),
         getItem('Quản lí phim', 'sub1', <DesktopOutlined />, [
-            getItem(<Link href={"/movie/config"}>Cấu hình</Link>, '1'),
+            getItem(<Link href={"/movie/config"}>Cấu hình</Link>, '1', session?.user?.role == 2),
             getItem(<Link href={"/dashboard_ticket"}>Thống kê vé</Link>, '2'),
             getItem('Option 3', '3'),
             getItem('Option 4', '4'),
