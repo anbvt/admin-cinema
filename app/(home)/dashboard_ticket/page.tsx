@@ -10,16 +10,16 @@ const DashBoard_Ticket = () => {
     const onFinishTicket = (values: any) => {
         fetchAPI.get(`/v2/dashboard/statisticsTotalTicketInDay?movieId=${values.movie == undefined ? 0 : values.movie}&branchId=${values.branch == undefined ? 0 : values.branch}`)
             .then((response) => response.data)
-            .then((data) => setData(data))
+            .then((data) => setTicket(data))
             .catch((error) => {
-                setData([])
+                setTicket([])
                 console.log('fetch data failed', error);
             });
     }
     const handleTicketChange = () => {
         formTicket.submit();
     };
-    const [data, setData] = useState([]);
+    const [ticket, setTicket] = useState([]);
     return (
         <div className="container">
             <div className="my-3">
@@ -39,7 +39,7 @@ const DashBoard_Ticket = () => {
                         <Select
                             placeholder="Chọn chi nhánh"
                             allowClear
-                            options={useFetch('/branch').data.map((s: any) => ({ label: s.name, value: s.id }))}
+                            options={useFetch('/branch').data?.map((s: any) => ({ label: s.name, value: s.id }))}
                             onChange={handleTicketChange}
                         >
                         </Select>
@@ -51,12 +51,12 @@ const DashBoard_Ticket = () => {
                         <Select
                             placeholder="Chọn phim"
                             allowClear
-                            options={rootMovie.map((s: any) => ({ label: s.name, value: s.id }))}
+                            options={rootMovie?.map((s: any) => ({ label: s.name, value: s.id }))}
                             onChange={handleTicketChange}
                         ></Select>
                     </Form.Item>
                 </Form>
-                <Line className="my-8" data={data} xField="starttime" yField="quantity" legend={{ position: 'top' }} smooth={true} animation={{
+                <Line className="my-8" data={ticket} xField="starttime" yField="quantity" legend={{ position: 'top' }} smooth={true} animation={{
                     appear: {
                         animation: 'path-in',
                         duration: 3000
