@@ -6,6 +6,7 @@ import * as XLSX from "xlsx"
 import {BarChart, Card, Title} from "@tremor/react";
 import {CustomTooltipType} from "@tremor/react/dist/components/chart-elements/common/CustomTooltipProps";
 import {NumberUtils} from "../../../util/NumberUtils";
+import {useSession} from "next-auth/react";
 
 
 const DashBoard = () => {
@@ -16,6 +17,8 @@ const DashBoard = () => {
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
 
+    const {data: session } = useSession();
+    console.log(session?.user)
 
     useEffect(() => {
         handleTotalChange()
@@ -39,7 +42,6 @@ const DashBoard = () => {
     }
     const handleTotalChange = () => {
         formTotal.submit();
-        console.log(total)
     };
     const handleMovieChange = () => {
         formMovie.submit();
@@ -55,13 +57,14 @@ const DashBoard = () => {
 
     const customTooltip :  React.ComponentType<CustomTooltipType> = ({ payload, active }) => {
         if (!active || !payload) return null;
+        console.log(payload)
         return (
             <div className="w-56 rounded-tremor-default text-tremor-default bg-tremor-background p-2 shadow-tremor-dropdown border border-tremor-border">
                 {payload.map((category, idx) => (
                     <div key={idx} className="flex flex-1 space-x-2.5">
                         <div className={`w-1 flex flex-col bg-${category.color}-500 rounded`} />
                         <div className="space-y-1">
-                            <p className="text-tremor-content">{category.dataKey}</p>
+                            <p className="text-tremor-content" >{category.dataKey}</p>
                             <p className="font-medium text-tremor-content-emphasis">{NumberUtils.formatCurrency(category.value as number || 0) }</p>
                         </div>
                     </div>
@@ -78,7 +81,7 @@ const DashBoard = () => {
                         form={formTotal}
                         onFinish={onFinishTotal}
                         layout={"inline"}
-                        name="control-hooks"
+                        name="TotalPrice"
                         style={{
                             maxWidth: 'none',
                         }}
@@ -130,7 +133,7 @@ const DashBoard = () => {
                 <Form
                     form={formMovie}
                     onFinish={onFinishMovie}
-                    name="control-hooks"
+                    name="TotalMovie"
                     style={{
                         maxWidth: 'none',
                     }}

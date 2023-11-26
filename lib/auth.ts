@@ -15,7 +15,7 @@ export const authconfig: NextAuthOptions = {
             },
             async authorize(credentials) {
                 try {
-                    const {data:cus} = await fetchAPI.post("/customer/login",{email: credentials?.email, password: credentials?.password})
+                    const {data:cus} = await fetchAPI.post("/staff/login",{email: credentials?.email, password: credentials?.password})
                     if (cus) {
                         return {
                             id: cus.id,
