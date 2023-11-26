@@ -1,9 +1,10 @@
 "use client"
 import React, {useEffect, useState} from "react";
-import {Bar, DualAxes} from '@ant-design/plots';
 import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
+import {BarChart} from "@tremor/react";
+
 
 const DashBoard = () => {
     const rootMovie = useFetch('/movie').data
@@ -13,53 +14,7 @@ const DashBoard = () => {
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
 
-    const configTotal = {
-        data: total || [],
-        xField: 'totalPrice',
-        yField: 'month',
-        seriesField: 'month',
-        meta: {
-            month: {
-                formatter: (value: any, index?: number) => "Tháng " + value
-            },
-            totalPrice: {
-                formatter: (value: any, index?: number) => value.toLocaleString("vi-VI", {
-                    style: 'currency',
-                    currency: 'VND'
-                })
-            }
-        }
-    };
-    const configMovie = {
-        data: [movie, movie],
-        xField: 'month',
-        yField: ['totalTicket', 'totalPrice'],
-        meta: {
-            totalPrice: {
-                alias: 'Tổng giá',
-                formatter: (value: any, index?: number) => value.toLocaleString("vi-VI", {
-                    style: 'currency',
-                    currency: 'VND'
-                })
-            },
-            totalTicket: {
-                alias: 'Tổng vé'
-            }
-        },
-        title: 'Thống kê phim',
-        geometryOptions: [
-            {
-                geometry: 'column',
-            },
-            {
-                geometry: 'line',
-                lineStyle: {
-                    lineWidth: 2,
-                },
-            },
-        ],
 
-    };
 
     useEffect(() => {
         handleTotalChange()
@@ -83,6 +38,7 @@ const DashBoard = () => {
     }
     const handleTotalChange = () => {
         formTotal.submit();
+        console.log(total)
     };
     const handleMovieChange = () => {
         formMovie.submit();
@@ -93,7 +49,7 @@ const DashBoard = () => {
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(movie);
         XLSX.utils.book_append_sheet(wb, ws, 'data');
-        XLSX.writeFileXLSX(wb, `${movie.movieName}.xlsx`)
+        XLSX.writeFileXLSX(wb, `Data.xlsx`)
     }
 
     return (
@@ -138,7 +94,24 @@ const DashBoard = () => {
                         ></Select>
                     </Form.Item>
                 </Form>
-                <Bar {...configTotal} />
+                <div><BarChart
+                    animationDuration={2}
+                    categories={[
+                        'totalPrice'
+                    ]}
+                    className="h-[500px]"
+                    colors={[
+                        'teal'
+                    ]}
+                    data={total}
+                    index="month"
+                    layout="vertical"
+                    showAnimation
+                    showGridLines
+                    showLegend
+                    showXAxis
+                    showYAxis
+                /></div>
             </div>
             <div className="my-3">
                 <h1>Thống kê phim</h1>
@@ -172,7 +145,6 @@ const DashBoard = () => {
                         </Col>
                     </Row>
                 </>)}
-                <DualAxes {...configMovie} />
             </div>
         </div>
     );
