@@ -30,7 +30,11 @@ const ChangePasswordPage = () => {
 
     const onSubmit = async (data: any) => {
         try {
-            await fetchAPI.post("/staff/updatePassword", data)
+            await fetchAPI.post("/staff/updatePassword", data);
+            api['success']({
+                message: 'Thông báo',
+                description: "Đổi mật khẩu thành công"
+            })
         } catch (e: any) {
             api['error']({
                 message: 'Thông báo lỗi',
