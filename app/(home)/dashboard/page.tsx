@@ -8,7 +8,6 @@ import {NumberUtils} from "../../../util/NumberUtils";
 import {useSession} from "next-auth/react";
 
 const DashBoard = () => {
-    const {data: data, setUri, error} = useFetch('');
     const [formValues, setFormValues] = useState<any>({});
     const [movie, setMovie] = useState([]);
     const [total, setTotal] = useState([]);

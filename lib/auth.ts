@@ -47,7 +47,7 @@ export const authconfig: NextAuthOptions = {
                 ...session.user,
                 id: String(token.id),
                 role: token.role,
-                branchId: token.branchid
+                branchId: token.branchId
             };
             return session;
         },
