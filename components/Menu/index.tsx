@@ -12,7 +12,6 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const MenuComponent = () => {
     const {data: session} = useSession();
-    console.log(session?.user)
 
     useEffect(()=>{
 
@@ -72,10 +71,10 @@ const MenuComponent = () => {
             </Menu.ItemGroup>
             <Menu.ItemGroup key={'account'} title="Thông tin tài khoản">
                 <Menu.Item key={'information'}>
-                    <Link href={"/movie/config"}>Trang cá nhân</Link>
+                    <Link href={"/information"}>Trang cá nhân</Link>
                 </Menu.Item>
                 <Menu.Item key={'change-password'}>
-                    <Link href={"/"}>Đổi mật khẩu</Link>
+                    <Link href={"/change-password"}>Đổi mật khẩu</Link>
                 </Menu.Item>
                 <Menu.Item key={'logout'}>
                     <button onClick={()=>signOut()}>Đăng xuất</button>

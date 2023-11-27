@@ -4,8 +4,12 @@ import { Inter } from 'next/font/google'
 import './../globals.css'
 import { Menu } from '@components'
 import { SessionProvider } from 'next-auth/react'
+import { ConfigProvider } from 'antd'
+import vi_VN from "antd/lib/locale/vi_VN";
+import moment from 'moment'
 
 const inter = Inter({ subsets: ['latin'] })
+// moment.locale("vi");
 
 export default function RootLayout({
   children,
@@ -15,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <ConfigProvider locale={vi_VN}>
         <SessionProvider>
           <div className='container flex flex-row'>
             <Menu />
@@ -23,7 +28,7 @@ export default function RootLayout({
             </div>
           </div>
         </SessionProvider>
-
+        </ConfigProvider>
       </body>
     </html>
   )
