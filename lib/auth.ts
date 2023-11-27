@@ -22,7 +22,7 @@ export const authconfig: NextAuthOptions = {
                             name: cus.name,
                             email: cus.email,
                             role: cus.role,
-                            branchid: cus.branchId
+                            branchId: cus.branchId
                         };
                     }
                 } catch (error: any) {
@@ -39,19 +39,15 @@ export const authconfig: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async jwt({user, token, session, trigger}) {
-            if (trigger === "update") {
-                // token.seat = session.seat
-                // token.topping = session.topping
-                // token.showtime = session.showtime
-                token.role = session.role
-            }
+
             return {...token, ...user};
         },
-        async session({session, user, token}) {
+        async session({session, token}) {
             session.user = {
                 ...session.user,
                 id: String(token.id),
-                role: token.role
+                role: token.role,
+                branchId: token.branchId
             };
             return session;
         },
