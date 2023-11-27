@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
-import {AreaChart, BarChart, Card, Title} from "@tremor/react";
+import {AreaChart, BarChart, Card, SearchSelect, SearchSelectItem, Title} from "@tremor/react";
 import {NumberUtils} from "../../../util/NumberUtils";
 import {useSession} from "next-auth/react";
 
@@ -29,7 +29,7 @@ const DashBoard = () => {
     const onFinishTotal = (values: any) => {
         if (values.year != undefined && values.branch != undefined) {
             setFormValues(values);
-            fetchAPI.get(`/v2/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
+            fetchAPI.get(`/v2/dashboard/findTotalPriceTicket?year=${values.year}&branchId=${values.branch}`)
                 .then((response) => setTotal(response.data))
                 .catch((error) => {
                     setTotal([])
@@ -38,7 +38,7 @@ const DashBoard = () => {
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
+            fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchId=${formValues.branch}&movieId=${values.movie}`)
                 .then((response) => response.data)
                 .then((data) => setMovie(data))
                 .catch((error) => {
@@ -79,7 +79,7 @@ const DashBoard = () => {
                                 <Form.Item
                                     name="branch"
                                     label="Chi Nhánh"
-                                    initialValue={session?.user.role != 2 && "Bình Tân"}
+                                    initialValue={session?.user.branchId || 'cn2'}
                                     hidden={session?.user.role != 2}
 
                                 >
@@ -89,7 +89,7 @@ const DashBoard = () => {
                                             allowClear
                                             options={branch?.map((s: any) => ({
                                                 label: s.name,
-                                                value: s.name
+                                                value: s.id
                                             }))}
                                             onChange={handleTotalChange}
                                             style={{
@@ -142,24 +142,30 @@ const DashBoard = () => {
                                     name="movie"
                                     label="Phim"
                                 >
-                                    <AutoComplete
+                                    <SearchSelect
                                         placeholder="Chọn phim"
-                                        options={rootMovie?.map((s: any) => ({label: s.name, value: s.name}))}
-                                        filterOption={(inputValue, option) =>
-                                            option!.value?.toString().toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                                        }
-                                        onSelect={handleMovieChange}
-                                        allowClear
-                                    />
+                                        onChange={handleMovieChange}
+                                        enableClear={false}
+                                    >
+                                        {rootMovie?.map((s: any) => (
+                                            <SearchSelectItem
+                                                value={s.id}
+                                            >
+                                                {s.name}
+                                            </SearchSelectItem>
+                                        ))}
+                                    </SearchSelect>
                                 </Form.Item>
                             </Form>
-                            {movie?.length > 0 && (<div>
+                            <div>
                                 <Row>
                                     <Col md={12}>
-                                        <Button onClick={handleOnExport}>Export</Button>
+                                        {movie?.length > 0 && (
+                                            <Button onClick={handleOnExport}>Export</Button>
+                                        )}
                                     </Col>
                                 </Row>
-                            </div>)}
+                            </div>
                             <AreaChart
                                 className="h-72 mt-4"
                                 data={movie}
@@ -167,7 +173,9 @@ const DashBoard = () => {
                                 categories={["totalTicket", 'totalPrice']}
                                 colors={["indigo", "cyan"]}
                                 noDataText="Không có dữ liệu"
+                                valueFormatter={(number) => NumberUtils.formatCurrency(number || 0)}
                                 showAnimation
+                                yAxisWidth={100}
                             />
                         </Card>
                     </div>
