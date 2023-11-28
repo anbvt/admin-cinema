@@ -5,12 +5,14 @@ import { Form } from "antd";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { DateUtils } from "../../../util/DateUtils";
+import LoadingComponent from "../../../components/Loading";
 
 const DashBoard_Ticket = () => {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [formTicket] = Form.useForm();
     const rootMovie = useFetch('/movie').data
+    const [branch, setBranch] = useState([]);
 
     const onFinishTicket = (values: any) => {
         fetchAPI.get(`/v2/dashboard/statisticsTotalTicketInDay?movieId=${values.movie}&branchId=${values.branch}`)
@@ -48,37 +50,45 @@ const DashBoard_Ticket = () => {
         if (session) {
             setLoading(false)
         }
-    }, [session])
+        if (session?.user.role == 2) {
+            fetchAPI.get('/branch').then((res) => (
+                setBranch(res.data)
+            ))
+        }
+        handleTicketChange();
+    }, [session, rootMovie])
     return (
         <div className="container">
             <div className="my-3">
-                <Card>
-                    <Form
-                        form={formTicket}
-                        onFinish={onFinishTicket}
-                        layout={"vertical"}
-                        style={{
-                            maxWidth: 'none'
-                        }}
-                    >
-                        {session?.user.role === 2 ?
-                            <>
-                                <Form.Item
-                                    name="branch"
-                                    label="Chi Nhánh"
+                {loading ? <LoadingComponent /> : (
+                    <Card>
+                        <Form
+                            form={formTicket}
+                            onFinish={onFinishTicket}
+                            layout={"vertical"}
+                            style={{
+                                maxWidth: 'none'
+                            }}
+                        >
+                            <Form.Item
+                                name="branch"
+                                label="Chi Nhánh"
+                                initialValue={session?.user.branchId || '0'}
+                                hidden={session?.user.role != 2}
+                            >
+                                <SearchSelect
+                                    placeholder="Chọn chi nhánh"
+                                    onChange={handleTicketChange}
+                                    enableClear={false}
                                 >
-                                    <SearchSelect
-                                        placeholder="Chọn chi nhánh"
-                                        onChange={handleTicketChange}
-                                        enableClear={false}
+                                    <SearchSelectItem
+                                        value={"0"}
+                                        onSelect={handleTicketChange}
                                     >
-                                        <SearchSelectItem
-                                            value={"0"}
-                                            onSelect={handleTicketChange}
-                                        >
-                                            Tất cả
-                                        </SearchSelectItem>
-                                        {useFetch('/branch').data?.map((s: any, idx: number) => (
+                                        Tất cả
+                                    </SearchSelectItem>
+                                    {branch.length > 0 && (
+                                        branch.map((s: any, idx: number) => (
                                             <SearchSelectItem
                                                 key={idx}
                                                 value={s.id}
@@ -86,37 +96,14 @@ const DashBoard_Ticket = () => {
                                             >
                                                 {s.name}
                                             </SearchSelectItem>
-                                        ))}
-                                    </SearchSelect>
-                                </Form.Item>
-                            </> :
-                            <>
-                                <Form.Item
-                                    name="branch"
-                                    label="Chi Nhánh"
-                                >
-                                    <SearchSelect
-                                        placeholder="Chọn chi nhánh"
-                                        onChange={handleTicketChange}
-                                        enableClear={false}
-                                    >
-                                        {useFetch('/branch').data?.map((s: any, idx: number) => {
-                                            session?.user.branchId == s.branchid ? <SearchSelectItem
-                                                key={idx}
-                                                value={s.id}
-                                                onSelect={handleTicketChange}
-                                            >
-                                                {s.name}
-                                            </SearchSelectItem> : null
-                                        })}
-                                    </SearchSelect>
-                                </Form.Item>
-                            </>
-                        }
-                        {session?.user.role === 2 ?
+                                        ))
+                                    )}
+                                </SearchSelect>
+                            </Form.Item>
                             <Form.Item
                                 name="movie"
                                 label="Phim"
+                                initialValue={"0"}
                             >
                                 <SearchSelect
                                     placeholder="Chọn phim"
@@ -139,31 +126,11 @@ const DashBoard_Ticket = () => {
                                         </SearchSelectItem>
                                     ))}
                                 </SearchSelect>
-                            </Form.Item> :
-                            <Form.Item
-                                name="movie"
-                                label="Phim"
-                            >
-                                <SearchSelect
-                                    placeholder="Chọn phim"
-                                    onChange={handleTicketChange}
-                                    enableClear={false}
-                                >
-                                    {rootMovie?.map((s: any, idx: number) => (
-                                        <SearchSelectItem
-                                            key={idx}
-                                            value={s.id}
-                                            onSelect={handleTicketChange}
-                                        >
-                                            {s.name}
-                                        </SearchSelectItem>
-                                    ))}
-                                </SearchSelect>
                             </Form.Item>
-                        }
-                    </Form >
-                    <LineChart showLegend={false} customTooltip={customTooltip} className="h-72 mt-4" noDataText="Không có dữ liệu" colors={["indigo"]} allowDecimals={false} data={ticket} autoMinValue={true} startEndOnly={true} index={"starttime"} categories={["quantity"]} />
-                </Card >
+                        </Form >
+                        <LineChart showLegend={false} customTooltip={customTooltip} className="h-72 mt-4" noDataText="Không có dữ liệu" colors={["indigo"]} allowDecimals={false} data={ticket} autoMinValue={true} startEndOnly={true} index={"starttime"} categories={["quantity"]} />
+                    </Card >
+                )}
             </div >
         </div >
     )
