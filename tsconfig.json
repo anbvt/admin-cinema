@@ -20,7 +20,8 @@
     ],
     "paths": {
       "@components":["./components/index.tsx"],
-      "@hooks":["./hook/index.tsx"]
+      "@hooks":["./hook/index.tsx"],
+      "@lib/*":["./lib/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

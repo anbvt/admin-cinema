@@ -9,14 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ant-design/charts": "^1.4.2",
-    "@ant-design/icons": "^4.8.0",
+    "@ant-design/icons": "^5.2.6",
+    "@tremor/react": "^3.11.1",
     "antd": "^5.11.2",
     "axios": "^1.6.2",
+    "moment": "^2.29.4",
     "next": "14.0.3",
+    "next-auth": "^4.24.5",
     "react": "^18",
     "react-dom": "^18",
-    "xlsx": "^0.18.5"
+    "react-hook-form": "^7.48.2",
+    "react-spinners": "^0.13.8",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.0/xlsx-0.20.0.tgz"
   },
   "devDependencies": {
     "@types/node": "^20",

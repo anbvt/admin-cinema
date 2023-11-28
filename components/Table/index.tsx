@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import type { TableColumnsType } from "antd";
-import { Button, Modal, Space, Table, DatePicker, Form, Alert, notification } from "antd";
+import { Button, Modal, Space, Table, DatePicker, Form, notification } from "antd";
 import { fetchAPI, useFetch } from "@hooks";
 import moment from 'moment';
 import type { NotificationPlacement } from 'antd/es/notification/interface';
@@ -30,6 +30,8 @@ const TableComponent = () => {
     const [selectedRowData, setSelectedRowData] = useState<ExpandedDataType | null>(null);
     const [form] = Form.useForm();
     const [api, contextHolder] = notification.useNotification();
+
+    const { RangePicker } = DatePicker;
 
 
     useEffect(() => {
@@ -79,46 +81,7 @@ const TableComponent = () => {
     const handleShowModal = (rowData: any) => {
 
         setSelectedRowData(rowData);
-        const currentValues = form.getFieldsValue();
 
-        // Cập nhật disabledDate của createDate nếu có dữ liệu trong currentValues.createDate
-        const disabledDate = (currentDate: { isBefore: (arg0: moment.Moment, arg1: string) => any; isAfter: (arg0: moment.Moment, arg1: string) => any; }) => {
-            if (rowData.createDate) {
-                return (
-                    currentDate.isBefore(moment(rowData.createDate), 'day') ||
-                    currentDate.isAfter(moment(rowData.createDate), 'day')
-                );
-            }
-            return false;
-        };
-
-        // Cập nhật disabledDate cho DatePicker createDate
-        form.setFields([
-            {
-                name: 'createDate',
-                value: moment(rowData.createDate),
-                errors: undefined, // Đặt errors thành undefined để loại bỏ thông báo lỗi (nếu có)
-            },
-        ]);
-
-        // Gán disabledDate cho DatePicker createDate
-        form.setFields([
-            {
-                name: 'createDate',
-                value: moment(rowData.createDate),
-                errors: undefined,
-                touched: true, // Đặt touched thành true để hiển thị field đã được chạm
-                validating: false, // Đặt validating thành false để kết thúc quá trình kiểm tra
-            },
-            {
-                name: 'createDate',
-                value: moment(rowData.createDate),
-                touched: true,
-                validating: false,
-                errors: undefined,
-                disabledDate: disabledDate, // Gán disabledDate cho DatePicker createDate
-            },
-        ]);
         form.setFieldsValue({
             startDate: moment(rowData.startDate),
             endDate: moment(rowData.endDate),
@@ -143,8 +106,6 @@ const TableComponent = () => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
-    const { RangePicker } = DatePicker;
-
     const expandedRowRender = (record: any) => {
         const columns: TableColumnsType<ExpandedDataType> = [
             { title: "Chi nhánh", dataIndex: "branchId", key: "branchId" },
@@ -170,9 +131,9 @@ const TableComponent = () => {
             <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel} okButtonProps={{ className: "buttonOk" }}>
                 {selectedRowData && (
                     <Form form={form} onFinish={handleSave}>
-                        {/* <Form.Item label="Ngày bắt đầu - Ngày kết thúc" name="dateRange" >
+                        <Form.Item label="Ngày bắt đầu - Ngày kết thúc" name="dateRange" >
                             <RangePicker format={"DD/MM/YYYY"} />
-                        </Form.Item> */}
+                        </Form.Item>
 
                         <Form.Item label="Ngày bắt đầu" name="startDate" >
                             <DatePicker format={"DD/MM/YYYY"} />
@@ -222,7 +183,6 @@ const TableComponent = () => {
                 }}
                 dataSource={data}
                 size="middle"
-                pagination={false}
             />
 
         </>

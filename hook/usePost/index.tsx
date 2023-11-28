@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react"
 import { fetchAPI } from "../fetchAPI"
 
-export function useFetch(url?: any, param?: any) {
+export function usePost(url?: any, param?: any) {
     let [data, setData]  = useState<any>();
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
