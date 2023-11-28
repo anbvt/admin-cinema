@@ -79,7 +79,8 @@ const DashBoard = () => {
         let ws = XLSX.utils.json_to_sheet(ws_data, {header: ws_header, origin: "A3"});
         XLSX.utils.sheet_add_aoa(ws, ws_info, {origin: "C1"});
         XLSX.utils.sheet_add_json(ws, [], {header: ["Tổng Cộng"], origin: -1});
-        XLSX.utils.sheet_set_array_formula(ws, "A4:B4", "A2:B2*A3:B3");
+        XLSX.utils.sheet_set_array_formula(ws, "B8", "=SUM(B4:B7)");
+        XLSX.utils.sheet_set_array_formula(ws, "C8", "=SUM(C4:C7)");
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         XLSX.writeFileXLSX(wb, `${movie[0].movieName}.xlsx`, {cellStyles: true})
@@ -106,7 +107,6 @@ const DashBoard = () => {
                                     label="Chi Nhánh"
                                     initialValue={session?.user.branchId || 'cn2'}
                                     hidden={session?.user.role != 2}
-
                                 >
                                     {branch.length > 0 &&
                                         <Select
