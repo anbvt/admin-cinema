@@ -6,6 +6,7 @@ import * as XLSX from "xlsx"
 import {AreaChart, BarChart, Card, SearchSelect, SearchSelectItem, Title} from "@tremor/react";
 import {NumberUtils} from "../../../util/NumberUtils";
 import {useSession} from "next-auth/react";
+import {LoadingComponent} from "@components";
 
 type Movie ={
     id: string,
@@ -204,7 +205,7 @@ const DashBoard = () => {
                             />
                         </Card>
                     </div>
-                </div> : <div>Loading</div>
+                </div> : <LoadingComponent/>
             }
         </div>
     );
