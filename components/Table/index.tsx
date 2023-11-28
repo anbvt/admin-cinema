@@ -1,116 +1,232 @@
-"use client"
+'use client'
 import React, { useEffect, useState } from "react";
-import { DownOutlined } from '@ant-design/icons';
-import type { TableColumnsType } from 'antd';
-import { Badge, Button, Dropdown, Space, Table } from 'antd';
+import type { TableColumnsType } from "antd";
+import { Button, Modal, Space, Table, DatePicker, Form, Alert, notification } from "antd";
 import { fetchAPI, useFetch } from "@hooks";
+import moment from 'moment';
+import type { NotificationPlacement } from 'antd/es/notification/interface';
+import "./index.css";
 
 interface DataType {
-    id: string;
     key: React.Key;
+    id: string;
     name: string;
 }
 
 interface ExpandedDataType {
-    key: React.Key;
-    id: string,
-    branchId: string,
-    date: string;
-    name: string;
-    upgradeNum: string;
+    id: string;
+    movieId: string;
+    branchId: string;
+    startDate: string;
+    endDate: string;
+    createDate: string;
+    updateDate: string;
 }
-
 const TableComponent = () => {
-    const [dataMovie, setDataMovie] = useState([]);
-    const [dataDetailMovieConfig, setdataDetailMovieConfig] = useState([]);
-    const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+    const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [dataMovie, setdDataMovie] = useState<any>([]);
+    const [status, setStatus] = useState(false);
+    const [selectedRowData, setSelectedRowData] = useState<ExpandedDataType | null>(null);
+    const [form] = Form.useForm();
+    const [api, contextHolder] = notification.useNotification();
+
+
     useEffect(() => {
-        fetchAPI.get(`/movie`)
-            .then((response) => response.data)
-            .then((data) => {
-                setDataMovie(data);
-                console.log(data);
-
+        fetchAPI.post("/movieConfig/findAll")
+            .then(response => {
+                setdDataMovie(response.data);
             })
-            .catch((error) => {
-                console.log('fetch data failed', error);
-                setDataMovie([]);
+            .catch(error => {
             });
-    }, []);
+    }, [status]);
 
+    const Context = React.createContext({ name: 'Default' });
 
+    const openNotification = (placement: NotificationPlacement, status: any, message: any) => {
+        status({
+            message: `${message}`,
+            description: <Context.Consumer>{({ name }) => `Cập nhật của bạn ${message} !`}</Context.Consumer>,
+            placement,
+        });
+    };
 
-    const items = [
-        { key: '1', label: 'Action 1' },
-        { key: '2', label: 'Action 2' },
-    ];
+    const handleSave = () => {
+        form.validateFields().then((values) => {
+            const formattedValues = {
+                ...values,
+                startDate: values.startDate ? values.startDate.format('YYYY-MM-DD') : null,
+                endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : null,
+                createDate: values.createDate ? values.createDate.format('YYYY-MM-DD') : null,
+                updateDate: values.updateDate ? values.updateDate.format('YYYY-MM-DD') : null,
+            };
+            const postData = {
+                ...formattedValues,
+                movieId: selectedRowData?.movieId,
+                branchId: selectedRowData?.branchId
+            };
+
+            fetchAPI.post("/movieConfig/update", postData)
+                .then(response => {
+                    openNotification('topRight', api.success, 'Thành công');
+                    setStatus(!status);
+                })
+                .catch(error => {
+                    openNotification('topRight', api.error, 'Thất bại');
+                });
+        });
+    };
+    const handleShowModal = (rowData: any) => {
+
+        setSelectedRowData(rowData);
+        const currentValues = form.getFieldsValue();
+
+        // Cập nhật disabledDate của createDate nếu có dữ liệu trong currentValues.createDate
+        const disabledDate = (currentDate: { isBefore: (arg0: moment.Moment, arg1: string) => any; isAfter: (arg0: moment.Moment, arg1: string) => any; }) => {
+            if (rowData.createDate) {
+                return (
+                    currentDate.isBefore(moment(rowData.createDate), 'day') ||
+                    currentDate.isAfter(moment(rowData.createDate), 'day')
+                );
+            }
+            return false;
+        };
+
+        // Cập nhật disabledDate cho DatePicker createDate
+        form.setFields([
+            {
+                name: 'createDate',
+                value: moment(rowData.createDate),
+                errors: undefined, // Đặt errors thành undefined để loại bỏ thông báo lỗi (nếu có)
+            },
+        ]);
+
+        // Gán disabledDate cho DatePicker createDate
+        form.setFields([
+            {
+                name: 'createDate',
+                value: moment(rowData.createDate),
+                errors: undefined,
+                touched: true, // Đặt touched thành true để hiển thị field đã được chạm
+                validating: false, // Đặt validating thành false để kết thúc quá trình kiểm tra
+            },
+            {
+                name: 'createDate',
+                value: moment(rowData.createDate),
+                touched: true,
+                validating: false,
+                errors: undefined,
+                disabledDate: disabledDate, // Gán disabledDate cho DatePicker createDate
+            },
+        ]);
+        form.setFieldsValue({
+            startDate: moment(rowData.startDate),
+            endDate: moment(rowData.endDate),
+            createDate: moment(rowData.createDate),
+            updateDate: moment(rowData.updateDate),
+
+        });
+        // form.resetFields();
+        showModal();
+
+    };
+
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleOk = () => {
+        handleSave();
+        setIsModalOpen(false);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+    const { RangePicker } = DatePicker;
 
     const expandedRowRender = (record: any) => {
         const columns: TableColumnsType<ExpandedDataType> = [
-            { title: 'Chi nhánh', dataIndex: 'branchId', key: 'branchId' },
-            { title: 'Date', dataIndex: 'date', key: 'date' },
-            { title: 'Name', dataIndex: 'name', key: 'name' },
+            { title: "Chi nhánh", dataIndex: "branchId", key: "branchId" },
+            { title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate" },
+            { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate" },
+            { title: "Ngày tạo", dataIndex: "createDate", key: "createDate" },
+            { title: "Ngày cập nhật", dataIndex: "updateDate", key: "updateDate" },
             {
-                title: 'Status',
-                key: 'state',
-                render: () => <Badge status="success" text="Finished" />,
-            },
-            { title: 'Upgrade Status', dataIndex: 'upgradeNum', key: 'upgradeNum' },
-            {
-                title: 'Action',
-                dataIndex: 'operation',
-                key: 'operation',
-                render: () => (
+                title: "Action",
+                render: (_, record) => (
                     <Space size="middle">
-                        <a>Pause</a>
-                        <a>Stop</a>
-                        <Dropdown menu={{ items }}>
-                            <a>
-                                More <DownOutlined />
-                            </a>
-                        </Dropdown>
-                    </Space>
+                        <Button className="buttonAction" onClick={() => handleShowModal(record)}>
+                            Chi tiết
+                        </Button>
+                    </Space >
                 ),
             },
         ];
+        const targetMovie = dataMovie?.find((movie: any) => movie.id === record);
+        const data: ExpandedDataType[] = targetMovie?.listMovieConfig;
 
-        fetchAPI.get(`/movieConfig/findAll?movieId=${record}`)
-            .then((response) => response.data)
-            .then((data) => {
-                setdataDetailMovieConfig(data);
-                console.log(data);
+        return <> <Table columns={columns} dataSource={data} pagination={false} size="small" />
+            <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel} okButtonProps={{ className: "buttonOk" }}>
+                {selectedRowData && (
+                    <Form form={form} onFinish={handleSave}>
+                        {/* <Form.Item label="Ngày bắt đầu - Ngày kết thúc" name="dateRange" >
+                            <RangePicker format={"DD/MM/YYYY"} />
+                        </Form.Item> */}
 
-            })
-            .catch((error) => {
-                console.log('fetch data failed', error);
-                setdataDetailMovieConfig([]);
-            });
+                        <Form.Item label="Ngày bắt đầu" name="startDate" >
+                            <DatePicker format={"DD/MM/YYYY"} />
+                        </Form.Item>
 
-        const data = dataDetailMovieConfig;
-        console.log(data);
+                        <Form.Item label="Ngày kết thúc" name="endDate" >
+                            <DatePicker format={"DD/MM/YYYY"} />
+                        </Form.Item>
 
-        return <Table columns={columns} dataSource={data} pagination={false} />;
+                        <Form.Item label="Ngày tạo" name="createDate" >
+                            <DatePicker format={"DD/MM/YYYY"} />
+
+                        </Form.Item>
+
+                        <Form.Item label="Ngày cập nhật" name="updateDate" >
+                            <DatePicker format={"DD/MM/YYYY"} />
+                        </Form.Item>
+                    </Form>
+                )}
+            </Modal ></>;
     };
 
     const columns: TableColumnsType<DataType> = [
-        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: "Mã Phim", dataIndex: "id", key: "id", width: '40%' },
+        { title: "Tên phim", dataIndex: "name", key: "name", width: '60%' },
 
     ];
 
-    const data: DataType[] = dataMovie;
+    const data: DataType[] = dataMovie.map((s: any) => { return { ...s, key: s?.id } });
+
+    const handleExpand = (record: DataType) => {
+        const newExpandedRowKeys = expandedRowKeys.includes(record.key)
+            ? []
+            : [record.key];
+        setExpandedRowKeys(newExpandedRowKeys);
+    };
+
     return (
         <>
-
+            {contextHolder}
             <Table
                 columns={columns}
                 expandable={{
                     expandedRowRender: (record) => expandedRowRender(record.id),
+                    expandedRowKeys,
+                    onExpand: (_, record) => handleExpand(record),
                 }}
                 dataSource={data}
                 size="middle"
+                pagination={false}
             />
 
         </>
     );
-}
+};
+
 export default TableComponent;

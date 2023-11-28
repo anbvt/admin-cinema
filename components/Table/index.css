@@ -1,0 +1,11 @@
+.buttonOk,
+.buttonAction {
+    background-color: blue;
+    color: white;
+}
+
+.buttonAction:hover,
+.buttonOk:hover {
+    background-color: aliceblue;
+    color: black;
+}

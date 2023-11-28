@@ -26,8 +26,8 @@ export function useFetch(url?: any, param?:any) {
                     setData(response)
                 }else{
                     if(uri != ''){
-                        response = (await fetchAPI.get(uri)).data;
-                        setData(response)
+                        // response = ;
+                        setData((await fetchAPI.get(uri)).data)
                     }
                 }
             } catch (err: any) {
