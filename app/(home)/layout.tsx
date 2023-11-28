@@ -11,7 +11,7 @@ const inter = Inter({subsets: ['latin']})
 // moment.locale("vi");
 const Menu = dynamic(() => import("@components").then((s) => s.Menu), {
     ssr: false,
-    loading: () => <LoadingComponent/>
+    loading: () => <></>
 });
 export default function RootLayout({children}: {
     children: React.ReactNode

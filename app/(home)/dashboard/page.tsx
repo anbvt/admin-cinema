@@ -8,7 +8,7 @@ import {NumberUtils} from "../../../util/NumberUtils";
 import {useSession} from "next-auth/react";
 import {LoadingComponent} from "@components";
 
-type Movie ={
+type Movie = {
     id: string,
     movieName: string,
     date: string,
@@ -65,7 +65,7 @@ const DashBoard = () => {
     const handleOnExport = () => {
         let ws_info = [
             ["Tên Phim", movie[0].movieName],
-            ["Chi nhánh", formValues.branchId]
+            ["Chi nhánh", formValues.branch]
         ];
         let ws_header = ["month", "totalTicket", "totalPrice", "year", "date"]
         let ws_data = movie.map((n) => {
@@ -77,11 +77,20 @@ const DashBoard = () => {
                 date: n.date
             }
         })
-        let ws = XLSX.utils.json_to_sheet(ws_data, {header: ws_header, origin: "A3"});
+        const totalRow = {
+            month: "Tổng Cộng",
+            totalTicket: {f: `SUM(B4:B${ws_data.length + 3})`, t: 'n'},
+            totalPrice: {f: `SUM(C4:C${ws_data.length + 3})`, t: 'n', z: '#,##0 VNĐ'},
+            year: "",
+            date: ""
+        };
+        const ws = XLSX.utils.json_to_sheet(ws_data, {header: ws_header, origin: "A3"});
         XLSX.utils.sheet_add_aoa(ws, ws_info, {origin: "C1"});
-        XLSX.utils.sheet_add_json(ws, [], {header: ["Tổng Cộng"], origin: -1});
-        XLSX.utils.sheet_set_array_formula(ws, "B8", "=SUM(B4:B7)");
-        XLSX.utils.sheet_set_array_formula(ws, "C8", "=SUM(C4:C7)");
+        XLSX.utils.sheet_add_json(ws, [totalRow], {header: ws_header, skipHeader: true, origin: -1});
+        for(let i = 0 ; i<=5 ; i++){
+            if(!ws["!cols"]) ws["!cols"] = [];
+            if(!ws["!cols"][i]) ws["!cols"][i] = {wch: 12};
+        }
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         XLSX.writeFileXLSX(wb, `${movie[0].movieName}.xlsx`, {cellStyles: true})
