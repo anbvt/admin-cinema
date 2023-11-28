@@ -1,32 +1,36 @@
 "use client"
-import { fetchAPI, useFetch } from "@hooks";
-import { Card, LineChart, SearchSelect, SearchSelectItem } from "@tremor/react";
+import { fetchAPI } from "@hooks";
+import { Card, LineChart, SearchSelect, SearchSelectItem, Title } from "@tremor/react";
 import { Form } from "antd";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { DateUtils } from "../../../util/DateUtils";
 import LoadingComponent from "../../../components/Loading";
+import { DateUtils } from "../../../util/DateUtils";
 
 const DashBoard_Ticket = () => {
     const { data: session } = useSession();
-    const [loading, setLoading] = useState(true);
     const [formTicket] = Form.useForm();
-    const rootMovie = useFetch('/movie').data
     const [branch, setBranch] = useState([]);
-
-    const onFinishTicket = (values: any) => {
-        fetchAPI.get(`/v2/dashboard/statisticsTotalTicketInDay?movieId=${values.movie}&branchId=${values.branch}`)
-            .then((response) => response.data)
-            .then((data) => setTicket(data))
-            .catch((error) => {
-                setTicket([])
-                console.log('fetch data failed', error);
-            });
-    }
-    const handleTicketChange = () => {
-        formTicket.submit();
-    };
+    const [movie, setMovie] = useState([])
     const [ticket, setTicket] = useState([]);
+
+    useEffect(() => {
+        if (session?.user.role == 2) {
+            fetchAPI.get('/branch').then((res) => (
+                setBranch(res.data)
+            ))
+            fetchAPI.get("/v2/dashboard/movieOfBranch?branchId=0").then(rs => {
+                setMovie(rs.data)
+            })
+        } else if (session?.user.role == 1) {
+            fetchAPI.get(`/v2/dashboard/movieOfBranch?branchId=${session?.user.branchId}`).then(rs => {
+                setMovie(rs.data)
+            })
+        }
+        handleTicketChange();
+    }, [session])
+
+    // Config for LineChart
     const customTooltip = (value: any) => {
         if (!value.active || !value.payload) return null;
         return (
@@ -46,22 +50,32 @@ const DashBoard_Ticket = () => {
             </>
         );
     };
-    useEffect(() => {
-        if (session) {
-            setLoading(false)
+    // Handle
+    const onFinishTicket = (values: any) => {
+        if (values.movie != undefined && values.branch != undefined) {
+            fetchAPI.get(`/v2/dashboard/statisticsTotalTicketInDay?movieId=${values.movie}&branchId=${values.branch}`)
+                .then((response) => response.data)
+                .then((data) => setTicket(data))
+                .catch((error) => {
+                    setTicket([])
+                    console.log('fetch data failed', error);
+                });
+            fetchAPI.get(`/v2/dashboard/movieOfBranch?branchId=${values.branch}`).then(rs => {
+                setMovie(rs.data)
+            })
         }
-        if (session?.user.role == 2) {
-            fetchAPI.get('/branch').then((res) => (
-                setBranch(res.data)
-            ))
-        }
-        handleTicketChange();
-    }, [session, rootMovie])
+
+    }
+    const handleTicketChange = () => {
+        formTicket.submit();
+    };
+
     return (
         <div className="container">
             <div className="my-3">
-                {loading ? <LoadingComponent /> : (
+                {!session ? <LoadingComponent /> : (
                     <Card>
+                        <Title>Thống kê vé</Title>
                         <Form
                             form={formTicket}
                             onFinish={onFinishTicket}
@@ -83,7 +97,6 @@ const DashBoard_Ticket = () => {
                                 >
                                     <SearchSelectItem
                                         value={"0"}
-                                        onSelect={handleTicketChange}
                                     >
                                         Tất cả
                                     </SearchSelectItem>
@@ -92,7 +105,6 @@ const DashBoard_Ticket = () => {
                                             <SearchSelectItem
                                                 key={idx}
                                                 value={s.id}
-                                                onSelect={handleTicketChange}
                                             >
                                                 {s.name}
                                             </SearchSelectItem>
@@ -112,17 +124,15 @@ const DashBoard_Ticket = () => {
                                 >
                                     <SearchSelectItem
                                         value={"0"}
-                                        onSelect={handleTicketChange}
                                     >
                                         Tất cả
                                     </SearchSelectItem>
-                                    {rootMovie?.map((s: any, idx: number) => (
+                                    {movie?.map((s: any, idx: number) => (
                                         <SearchSelectItem
                                             key={idx}
-                                            value={s.id}
-                                            onSelect={handleTicketChange}
+                                            value={s.movieId}
                                         >
-                                            {s.name}
+                                            {s.movieName}
                                         </SearchSelectItem>
                                     ))}
                                 </SearchSelect>
