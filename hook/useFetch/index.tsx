@@ -7,14 +7,6 @@ export function useFetch(url?: any, param?:any) {
     const [loading, setLoading] = useState(false)
     const [params, setParam] = useState(param);
     const [uri, setUri] = useState(url);
-    // const setParam = (obj:any) => {
-    //     param = obj;
-    // }
-    
-    // const setUrl = (uri: string) => {
-    //     url= uri;
-    //     console.log(uri);
-    // }
 
     useEffect(() => {
         const init = async () => {
