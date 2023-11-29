@@ -34,7 +34,8 @@ export const authconfig: NextAuthOptions = {
         })
     ],
     pages: {
-        signIn: '/login'
+        signIn: '/login',
+        signOut: '/signout',
     },
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
