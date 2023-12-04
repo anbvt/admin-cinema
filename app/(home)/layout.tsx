@@ -4,15 +4,10 @@ import './../globals.css'
 import {SessionProvider} from 'next-auth/react'
 import {ConfigProvider} from 'antd'
 import vi_VN from "antd/lib/locale/vi_VN";
-import dynamic from "next/dynamic";
-import {LoadingComponent} from "@components";
+import {Menu} from "@components";
 
 const inter = Inter({subsets: ['latin']})
 // moment.locale("vi");
-const Menu = dynamic(() => import("@components").then((s) => s.Menu), {
-    ssr: false,
-    loading: () => <></>
-});
 export default function RootLayout({children}: {
     children: React.ReactNode
 }) {

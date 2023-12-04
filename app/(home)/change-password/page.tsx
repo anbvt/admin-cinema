@@ -1,12 +1,10 @@
 "use client"
-import { Radio, notification } from "antd";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import {notification} from "antd";
+import {useSession} from "next-auth/react";
+import {useEffect, useState} from "react";
+import {useForm} from "react-hook-form";
 import {ButtonComponent, InputComponent, LoadingComponent} from "@components";
-import { fetchAPI } from "@hooks";
-import Error from "next/error";
-
+import {fetchAPI} from "@hooks";
 
 
 const ChangePasswordPage = () => {
