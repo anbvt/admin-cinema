@@ -68,7 +68,7 @@ const MenuComponent = () => {
                 <Link href={"/dashboard_ticket"}>Thống kê vé</Link>
             </Menu.Item>
             {session?.user.role == 2 && <Menu.Item key={'3'}>
-                <Link href={"/movie/create"}>Thêm phim</Link>
+                <Link href={"/movie/manage"}>Thêm phim</Link>
             </Menu.Item>}
         </Menu.ItemGroup>
         <Menu.ItemGroup key={'account'} title="Thông tin tài khoản">
