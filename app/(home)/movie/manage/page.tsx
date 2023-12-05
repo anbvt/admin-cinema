@@ -11,7 +11,6 @@ import {errorNotification, successNotification} from "@util/Notification";
 import type {ColumnsType, ColumnType} from 'antd/es/table';
 import dayjs from 'dayjs';
 import type {FilterConfirmProps} from 'antd/es/table/interface';
-import type {UploadFile} from 'antd/es/upload/interface';
 
 interface DataType {
     key: string;
@@ -43,7 +42,7 @@ const ManageMovie = () => {
             })
             .catch(error => {
             });
-    }, [session,creating]);
+    }, [session, creating]);
 
     const handleSearch = (
         selectedKeys: string[],
@@ -202,7 +201,9 @@ const ManageMovie = () => {
     // ChooseFileSystem
     const normFile = (e: any) => {
         console.log(e)
-        setUpload(e?.file);
+        if (e.file?.status === "removed") {
+            setUpload(undefined)
+        } else setUpload(e.file);
     };
 
     //On Submit Insert Movie
@@ -235,13 +236,14 @@ const ManageMovie = () => {
         }
     };
     const onUpdate = (values: any) => {
-        console.log(values)
         if (upLoad) {
             const data = {
                 ...values,
                 'yearofmanufacture': Number(values['yearofmanufacture'].format('YYYY')),
-                'poster': upLoad?.name
+                'arrayLanguage': values['language'].concat(values['arrayLanguage']),
+                'poster': upLoad?.name,
             }
+            delete data.language
             setCreating(true);
             const jsonBlob = new Blob([JSON.stringify(data)], {type: 'application/json'});
             fetchAPI.put('/movie/update', {json: jsonBlob, file: upLoad}, {
@@ -255,6 +257,8 @@ const ManageMovie = () => {
                 setCreating(false);
                 setModalOpenUpdate(false)
             })
+        } else {
+            errorNotification('Vui lòng chọn hình ảnh!!!')
         }
     };
 
@@ -459,10 +463,11 @@ const ManageMovie = () => {
                                 status: detailMovie.status,
                                 countryid: detailMovie.countryid,
                                 yearofmanufacture: dayjs(String(detailMovie.yearofmanufacture), 'YYYY'),
-                                arrayLanguage: detailMovie?.language?.map((language: any) => language.id),
+                                language: detailMovie?.language?.map((language: any) => language.id),
                                 arrayType: detailMovie?.type?.map((type: any) => type.id),
                                 arrayActor: detailMovie?.actor?.map((actor: any) => actor.name),
-                                arrayDirector: detailMovie?.director?.map((director: any) => director.name)
+                                arrayDirector: detailMovie?.director?.map((director: any) => director.name),
+                                arrayLanguage: [],
                             }}
                         >
                             {/*Mã Phim*/}
@@ -518,16 +523,29 @@ const ManageMovie = () => {
                             </Form.Item>
                             {/*Ngôn ngữ phim*/}
                             <Form.Item
-                                name="arrayLanguage"
-                                label="Ngôn ngữ"
-                                rules={[{required: true, message: 'Chọn ít nhất 1 ngôn ngữ!', type: 'array'}]}
+                                name="language"
+                                label="Ngôn ngữ đã có"
                             >
-                                <Select mode="multiple" placeholder="Vui lòng chọn ngôn ngữ">
+                                <Select mode="multiple" disabled>
                                     {rootLanguage && rootLanguage.map((s: any, idx: number) => (
                                         <Option value={s.id} key={idx}>{s.name}</Option>
                                     ))}
                                 </Select>
                             </Form.Item>
+                            <Form.Item
+                                name="arrayLanguage"
+                                label="Ngôn ngữ"
+                                rules={[{type: 'array'}]}
+                            >
+                                <Select mode="multiple" placeholder="Vui lòng chọn ngôn ngữ">
+                                    {rootLanguage && rootLanguage.map((s: any, idx: number) => (
+                                        !detailMovie?.language?.some((lang: any) => lang.id === s.id) && (
+                                            <Option value={s.id} key={idx}>{s.name}</Option>
+                                        )
+                                    ))}
+                                </Select>
+                            </Form.Item>
+
                             {/*Thể loại phim*/}
                             <Form.Item
                                 name="arrayType"
@@ -597,9 +615,10 @@ const ManageMovie = () => {
                             >
                                 <Upload name="poster" listType="picture"
                                         accept="image/jpeg, image/png, image/jpg"
-                                        beforeUpload={(file) => {
+                                        beforeUpload={() => {
                                             return false
                                         }}
+                                        onRemove={() => setUpload(undefined)}
                                         maxCount={1}
                                 >
                                     <Button icon={<UploadOutlined/>}>Chọn ảnh....</Button>
