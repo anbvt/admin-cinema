@@ -141,9 +141,10 @@ const DashBoard = () => {
                                     <Select
                                         placeholder="Chọn năm"
                                         allowClear
-                                        options={rootYear?.map((s: any) => ({
+                                        options={rootYear?.map((s: any,idx:number) => ({
                                             label: s.year,
-                                            value: s.year
+                                            value: s.year,
+                                            key:idx
                                         }))}
                                         onChange={handleTotalChange}
                                     ></Select>
@@ -182,9 +183,10 @@ const DashBoard = () => {
                                         onChange={handleMovieChange}
                                         enableClear={false}
                                     >
-                                        {rootMovie?.map((s: any) => (
+                                        {rootMovie?.map((s: any,idx:number) => (
                                             <SearchSelectItem
                                                 value={s.id}
+                                                key={idx}
                                             >
                                                 {s.name}
                                             </SearchSelectItem>

@@ -8,8 +8,8 @@ const LoginPage = () => {
     if(session) return redirect("/");
     const { handleSubmit, register, formState: { errors } } = useForm({
         defaultValues: {
-            email: 'khaiminh0401@gmail.com',
-            password: '04012003'
+            email: 'lam@gmail.com',
+            password: '12345678'
         }
     });
 
