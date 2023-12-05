@@ -38,7 +38,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
                                                        setSelectedBranchId,
                                                        ...restProps
                                                    }) => {
-    const handleBranchChange = async (value: string) => {
+    const handleBranchChange = (value: string) => {
         const foundItems = branches.filter((item: any) => item.name === value)
         record.branchId = foundItems[0].id;
         setSelectedBranchId(foundItems[0].id);

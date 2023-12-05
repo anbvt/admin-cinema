@@ -12,6 +12,7 @@ import {FaSave} from "react-icons/fa";
 import EditableCell from "./EditTableCell";
 import {Item} from "./Item";
 import Link from "next/link";
+import InsertShowtimeForm from "./InsertShowtimeForm";
 
 const EditableTable: React.FC = () => {
     const [form] = Form.useForm();
@@ -21,19 +22,18 @@ const EditableTable: React.FC = () => {
     const [selectedBranchId, setSelectedBranchId] = useState<string>('');
     const [dimension, setDimension] = useState<any>([]);
     const [movieAndLanguage, setMovieAndLanguage] = useState<any>([]);
-    const [open, setOpen] = useState(false);
     const [editingKey, setEditingKey] = useState<number>();
     const [removed, setRemoved] = useState<number>();
+    const [added, setAdded] = useState<boolean>();
 
     useEffect(() => {
         const init = async () => {
             const response = await fetchAPI("/showtime");
-            console.log(response.data)
             setData(response.data);
         }
 
         init();
-    }, [editingKey, removed]);
+    }, [editingKey, removed, added]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,14 +51,12 @@ const EditableTable: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (selectedBranchId) {
-            fetchAPI(`/room/get-by-branch?branchId=${selectedBranchId}`).then((resp) => {
-                setRooms(resp.data);
-                console.log(resp.data)
-            });
-        } else {
-            return;
-        }
+        if (!selectedBranchId) return;
+
+        fetchAPI(`/room/get-by-branch?branchId=${selectedBranchId}`).then((resp) => {
+            setRooms(resp.data);
+            console.log(resp.data)
+        });
     }, [selectedBranchId]);
 
     const isEditing = (record: Item) => record.id === editingKey;
@@ -110,7 +108,7 @@ const EditableTable: React.FC = () => {
         }
     };
 
-    const remove = async (key: React.Key) => {
+    const remove = (key: React.Key) => {
         fetchAPI(`/showtime/deleteShowTime/${key}`)
             .then(response => {
                 setRemoved(Number(key));
@@ -120,19 +118,6 @@ const EditableTable: React.FC = () => {
                 notification.error({message: 'Đã xảy ra lỗi khi xóa show time. Vui lòng thử lại sau!'})
                 console.error('Lỗi khi xóa show time:', error);
             });
-    };
-
-    const showModal = () => {
-        setOpen(true);
-    };
-    const handleAddShowtimeIsOk = () => {
-        setOpen(false);
-    };
-
-    const handleAddShowtimeIsCancel = async () => {
-        await fetchAPI("");
-
-        setOpen(false);
     };
 
     data.forEach((item: Item) => {
@@ -191,26 +176,26 @@ const EditableTable: React.FC = () => {
             editable: true,
         },
         {
-            title: 'Hành động',
+            title: '',
             dataIndex: 'action',
             render: (_: any, record: Item) => {
                 const editable = isEditing(record);
                 return editable ? (
-                    <span className={"flex justify-center gap-3"}>
-                        <Link href="#" onClick={() => save(record.id)}>
+                    <span className={"flex justify-center gap-1"}>
+                        <Button className={"border-0"} onClick={() => save(record.id)}>
                           <FaSave/>
-                        </Link>
-                        <Link href="#" onClick={cancel}>
+                        </Button>
+                        <Button className={"border-0"} onClick={cancel}>
                           <MdCancel/>
-                        </Link>
+                        </Button>
                     </span>
                 ) : (
-                    <span className={"flex justify-center gap-3"}>
-                        <Link href="#" aria-disabled={editingKey !== undefined} onClick={() => edit(record)}>
+                    <span className={"flex justify-center gap-1"}>
+                        <Button className={"border-0"} aria-disabled={editingKey !== undefined} onClick={() => edit(record)}>
                             <MdEditSquare/>
-                        </Link>
-                        <Link
-                            href="#"
+                        </Button>
+                        <Button
+                            className={"border-0"}
                             onClick={() => {
                                 Modal.confirm({
                                     title: 'Xác nhận',
@@ -230,7 +215,7 @@ const EditableTable: React.FC = () => {
                             }}
                         >
                             <IoIosRemoveCircle/>
-                        </Link>
+                        </Button>
                     </span>
                 );
             },
@@ -267,30 +252,7 @@ const EditableTable: React.FC = () => {
 
     return (
         <>
-            <div>
-                <Button type="primary" onClick={showModal} className={"flex justify-center gap-2 my-5 bg-black"}>
-                    Thêm xuất chiếu <IoMdAddCircleOutline/>
-                </Button>
-                <Modal
-                    open={open}
-                    title="Thêm xuất chiếu"
-                    onOk={handleAddShowtimeIsOk}
-                    onCancel={handleAddShowtimeIsCancel}
-                    footer={(_, {OkBtn, CancelBtn}) => (
-                        <>
-                            <CancelBtn/>
-                            <OkBtn/>
-                        </>
-                    )}
-                >
-                    <p>Some contents...</p>
-                    <p>Some contents...</p>
-                    <p>Some contents...</p>
-                    <p>Some contents...</p>
-                    <p>Some contents...</p>
-                </Modal>
-            </div>
-
+            <InsertShowtimeForm branches={branches} dimension={dimension} setAdded={(check: boolean) => {setAdded(check)}}/>
             <Form form={form} component={false}>
                 <Table
                     components={{

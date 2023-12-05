@@ -40,15 +40,6 @@ export const authconfig: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async jwt({user, token, session, trigger}) {
-<<<<<<< HEAD
-            // if (trigger === "update") {
-            //     token.seat = session.seat
-            //     token.topping = session.topping
-            //     token.showtime_management = session.showtime_management
-            // }
-=======
-
->>>>>>> 41eecf453bda6b0c6f9fba958f3c03726a6b9507
             return {...token, ...user};
         },
         async session({session, token}) {
