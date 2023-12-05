@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation'
-import { errorNotification, successNotification } from "../../../util/Notification";
 import { checkError } from "../../../util/Error";
+import { errorNotification, successNotification } from "@util/Notification";
 
 interface DataType {
     key: React.Key;
