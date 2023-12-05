@@ -71,6 +71,11 @@ const MenuComponent = () => {
                 <Link href={"/movie/create"}>Thêm phim</Link>
             </Menu.Item>}
         </Menu.ItemGroup>
+        <Menu.ItemGroup key={'staff'} title="Nhân viên">
+                {session?.user.role == 2 && <Menu.Item key={'staff'}>
+                    <Link href={"/staff"}>Quản lí nhân viên</Link>
+                </Menu.Item>}
+            </Menu.ItemGroup>
         <Menu.ItemGroup key={'account'} title="Thông tin tài khoản">
             <Menu.Item key={'information'}>
                 <Link href={"/information"}>Trang cá nhân</Link>
