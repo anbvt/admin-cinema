@@ -1,154 +1,17 @@
 'use client'
 
-import React, {ChangeEvent, useEffect, useState} from 'react';
-import {Table, Select, Input, Form, DatePicker, TimePicker, Button, Modal} from 'antd';
-import {FormInstance} from 'antd/lib/form';
+import React, {useEffect, useState} from 'react';
+import {Table, Select, Form, Button, Modal, notification} from 'antd';
 
 const {Option} = Select;
 import {fetchAPI} from "@hooks";
 import moment, {Moment} from "moment";
-import dayjs from "dayjs";
 import {MdCancel, MdEditSquare} from "react-icons/md";
 import {IoIosRemoveCircle, IoMdAddCircleOutline} from "react-icons/io";
 import {FaSave} from "react-icons/fa";
-
-interface Item {
-    id: number;
-    branchId: string;
-    roomId: string;
-    languageOfMovieId: number;
-    dimensionId: number;
-    roomName: string;
-    movieName: string;
-    branchName: string;
-    branchAddress: string;
-    showDate: Moment;
-    startTime: Moment;
-    languageId: number;
-    languageName: string;
-    dimensionName: string;
-    price: number;
-    movieAndLanguage: string;
-    editable?: boolean;
-}
-
-interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
-    editing: boolean;
-    dataIndex: string;
-    title: string;
-    inputType: 'text' | 'select' | 'date' | 'time';
-    record: Item;
-    index: number;
-    children: React.ReactNode;
-    form: FormInstance<any>;
-    branches: any;
-    rooms: any;
-    dimension: any;
-    movieAndLanguage: any;
-    setSelectedBranchId: (branchId: number) => {};
-}
-
-const EditableCell: React.FC<EditableCellProps> = ({
-                                                       editing,
-                                                       dataIndex,
-                                                       title,
-                                                       inputType,
-                                                       record,
-                                                       index,
-                                                       children,
-                                                       form,
-                                                       branches,
-                                                       rooms,
-                                                       dimension,
-                                                       movieAndLanguage,
-                                                       setSelectedBranchId,
-                                                       ...restProps
-                                                   }) => {
-    const handleBranchChange = async (value: string) => {
-        const foundItems = branches.filter((item: any) => item.name === value)
-        record.branchId = foundItems[0].id;
-        setSelectedBranchId(foundItems[0].id);
-    };
-
-    const handleLanguageOfMovieChange = (value: number) => {
-        record.languageOfMovieId = value;
-    };
-
-    const handleDimensionChange = (value: string) => {
-        const foundItems = dimension.filter((item: any) => item.name === value)
-        record.dimensionId = foundItems[0].id;
-    };
-
-    const handleRoomChange = (value: string) => {
-        const foundItems = rooms.filter((item: any) => item.name === value)
-        record.roomId = foundItems[0].id;
-    };
-
-    const inputNode = () => {
-        switch (inputType) {
-            case 'select':
-                if (dataIndex === 'roomName') {
-                    return (
-                        <Select onChange={handleRoomChange}>
-                            {rooms.map((room: any) => (
-                                <Option value={room.name} key={room.id}>
-                                    {room.name}
-                                </Option>
-                            ))}
-                        </Select>
-                    )
-                } else if (dataIndex === 'branchName') {
-                    return (
-                        <Select onChange={handleBranchChange}>
-                            {branches.map((branch: any) => (
-                                <Option value={branch.name} key={branch.id}>
-                                    {branch.name}
-                                </Option>
-                            ))}
-                        </Select>
-                    )
-                } else if (dataIndex === 'movieAndLanguage')
-                    return (
-                        <Select onChange={handleLanguageOfMovieChange}>
-                            {movieAndLanguage.map((mnl: any) => (
-                                <Option value={mnl.id} key={mnl.id}>
-                                    {mnl.id} - {mnl.movieName} ({mnl.languageName})
-                                </Option>
-                            ))}
-                        </Select>
-                    )
-                else if (dataIndex === 'dimensionName')
-                    return (
-                        <Select onChange={handleDimensionChange}>
-                            {dimension.map((d: any) => (
-                                <Option value={d.name} key={d.id}>
-                                    {d.name}
-                                </Option>
-                            ))}
-                        </Select>
-                    )
-                break;
-            case 'date':
-                return <DatePicker defaultValue={dayjs(`${record.showDate}`)}/>;
-            case 'time':
-                return <TimePicker defaultValue={dayjs(`${record.startTime}`, 'HH:mm:ss')}/>;
-            default:
-                return <Input/>;
-        }
-    };
-
-    return (
-        <td {...restProps}>
-            {editing ? (
-                <Form.Item name={dataIndex} style={{margin: 0}}>
-                    {inputNode()}
-                </Form.Item>
-            ) : (
-                children
-            )}
-        </td>
-    );
-};
+import EditableCell from "./EditTableCell";
+import {Item} from "./Item";
+import Link from "next/link";
 
 const EditableTable: React.FC = () => {
     const [form] = Form.useForm();
@@ -160,6 +23,7 @@ const EditableTable: React.FC = () => {
     const [movieAndLanguage, setMovieAndLanguage] = useState<any>([]);
     const [open, setOpen] = useState(false);
     const [editingKey, setEditingKey] = useState<number>();
+    const [removed, setRemoved] = useState<number>();
 
     useEffect(() => {
         const init = async () => {
@@ -169,7 +33,7 @@ const EditableTable: React.FC = () => {
         }
 
         init();
-    }, []);
+    }, [editingKey, removed]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -247,7 +111,15 @@ const EditableTable: React.FC = () => {
     };
 
     const remove = async (key: React.Key) => {
-        await fetchAPI(`/showtime/deleteShowTime/${key}`);
+        fetchAPI(`/showtime/deleteShowTime/${key}`)
+            .then(response => {
+                setRemoved(Number(key));
+                notification.success({message: 'Xóa show time thành công!'});
+            })
+            .catch(error => {
+                notification.error({message: 'Đã xảy ra lỗi khi xóa show time. Vui lòng thử lại sau!'})
+                console.error('Lỗi khi xóa show time:', error);
+            });
     };
 
     const showModal = () => {
@@ -257,7 +129,9 @@ const EditableTable: React.FC = () => {
         setOpen(false);
     };
 
-    const handleAddShowtimeIsCancel = () => {
+    const handleAddShowtimeIsCancel = async () => {
+        await fetchAPI("");
+
         setOpen(false);
     };
 
@@ -323,21 +197,40 @@ const EditableTable: React.FC = () => {
                 const editable = isEditing(record);
                 return editable ? (
                     <span className={"flex justify-center gap-3"}>
-                        <a href="#" onClick={() => save(record.id)}>
+                        <Link href="#" onClick={() => save(record.id)}>
                           <FaSave/>
-                        </a>
-                        <a href="#" onClick={cancel}>
+                        </Link>
+                        <Link href="#" onClick={cancel}>
                           <MdCancel/>
-                        </a>
+                        </Link>
                     </span>
                 ) : (
                     <span className={"flex justify-center gap-3"}>
-                        <a href="#" aria-disabled={editingKey !== undefined} onClick={() => edit(record)}>
+                        <Link href="#" aria-disabled={editingKey !== undefined} onClick={() => edit(record)}>
                             <MdEditSquare/>
-                        </a>
-                        <a href="#" onClick={() => remove(record.id)}>
+                        </Link>
+                        <Link
+                            href="#"
+                            onClick={() => {
+                                Modal.confirm({
+                                    title: 'Xác nhận',
+                                    content: 'Xuất chiếu sẽ bị xóa vĩnh viễn',
+                                    cancelText: "Hủy",
+                                    okText: "Xóa",
+                                    onOk: () => {
+                                        remove(record.id)
+                                    },
+                                    footer: (_, {OkBtn, CancelBtn}) => (
+                                        <>
+                                            <CancelBtn/>
+                                            <OkBtn/>
+                                        </>
+                                    ),
+                                });
+                            }}
+                        >
                             <IoIosRemoveCircle/>
-                        </a>
+                        </Link>
                     </span>
                 );
             },
@@ -376,7 +269,7 @@ const EditableTable: React.FC = () => {
         <>
             <div>
                 <Button type="primary" onClick={showModal} className={"flex justify-center gap-2 my-5 bg-black"}>
-                    Thêm xuất chiếu <IoMdAddCircleOutline />
+                    Thêm xuất chiếu <IoMdAddCircleOutline/>
                 </Button>
                 <Modal
                     open={open}
