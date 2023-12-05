@@ -38,9 +38,9 @@ const MenuComponent = () => {
             getItem('Option 3', '3'),
             getItem('Option 4', '4'),
         ]),
-        getItem('Navigation Two', 'sub2', <AppstoreOutlined />, [
-            getItem('Option 5', '5'),
-            getItem('Option 6', '6'),
+        getItem('Quản lý xuất chiếu', 'sub2', <AppstoreOutlined />, [
+            getItem('Thống kê xuất chiếu', '5'),
+            getItem(<Link href={"/showtime_management"}>Xuất chiếu</Link>, '6'),
             getItem('Submenu', 'sub3', null, [getItem('Option 7', '7'), getItem('Option 8', '8')]),
         ]),
         getItem(`${session?.user?.name}`, 'account', <></>,

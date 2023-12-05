@@ -41,7 +41,7 @@ export const authconfig: NextAuthOptions = {
             // if (trigger === "update") {
             //     token.seat = session.seat
             //     token.topping = session.topping
-            //     token.showtime = session.showtime
+            //     token.showtime_management = session.showtime_management
             // }
             return {...token, ...user};
         },

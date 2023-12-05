@@ -1,5 +1,4 @@
 "use client"
-import { Line } from "@ant-design/charts";
 import { fetchAPI, useFetch } from "@hooks";
 import { Form, Select } from "antd";
 import { useState } from "react";
@@ -56,12 +55,6 @@ const DashBoard_Ticket = () => {
                         ></Select>
                     </Form.Item>
                 </Form>
-                <Line className="my-8" data={ticket} xField="starttime" yField="quantity" legend={{ position: 'top' }} smooth={true} animation={{
-                    appear: {
-                        animation: 'path-in',
-                        duration: 3000
-                    }
-                }} />
             </div>
         </div>
     )
