@@ -13,6 +13,8 @@ import EditableCell from "./EditTableCell";
 import {Item} from "./Item";
 import InsertShowtimeForm from "./InsertShowtimeForm";
 import dayjs from "dayjs";
+import {DateUtils} from "@util/DateUtils";
+import {NumberUtils} from "@util/NumberUtils";
 
 const EditableTable: React.FC = () => {
     const [form] = Form.useForm();
@@ -121,8 +123,8 @@ const EditableTable: React.FC = () => {
     };
 
     data.forEach((item: Item) => {
-        // moment(item.showDate);
-        // moment(item.startTime).format('HH:mm:ss');
+        item.showDate = DateUtils.formatDate(new Date(moment(item.showDate).toDate()))
+        item.price = NumberUtils.formatCurrency(item.price as number);
         item.movieAndLanguage = `${item.languageOfMovieId} - ${item.movieName} (${item.languageName})`
     })
 

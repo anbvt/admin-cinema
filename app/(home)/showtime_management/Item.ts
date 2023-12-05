@@ -12,12 +12,12 @@ export interface Item {
     movieName: string;
     branchName: string;
     branchAddress: string;
-    showDate: Moment;
+    showDate: Moment | string;
     startTime: Dayjs;
     languageId: number;
     languageName: string;
     dimensionName: string;
-    price: number;
+    price: number | string;
     movieAndLanguage: string;
     editable?: boolean;
 }
