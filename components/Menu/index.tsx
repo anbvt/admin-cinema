@@ -1,24 +1,27 @@
 "use client"
 
-import {AppstoreOutlined, DesktopOutlined, SettingOutlined} from "@ant-design/icons";
 import {Menu, MenuProps} from "antd";
-import { signOut, useSession } from "next-auth/react";
+import {signOut, useSession} from "next-auth/react";
 import Link from "next/link";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 type MenuItem = Required<MenuProps>['items'][number];
 
 
-
 const MenuComponent = () => {
     const {data: session} = useSession();
+
+    useEffect(() => {
+
+    }, [session]);
+
     function getItem(
         label: React.ReactNode,
         key: React.Key,
         icon?: React.ReactNode,
         children?: MenuItem[],
         type?: 'group',
-        hidden?: false
+        hidden?: boolean
     ): MenuItem {
 
         return !hidden ? {
@@ -29,31 +32,10 @@ const MenuComponent = () => {
             type,
         } : {} as MenuItem;
     }
-    
-    const items: MenuItem[] = [
-        getItem(<Link href={"/"}>Trang chủ</Link>, 'home'),
-        getItem('Quản lí phim', 'sub1', <DesktopOutlined />, [
-            getItem(<Link href={"/movie/config"}>Cấu hình</Link>, '1', session?.user?.role == 2),
-            getItem(<Link href={"/dashboard_ticket"}>Thống kê vé</Link>, '2'),
-            getItem('Option 3', '3'),
-            getItem('Option 4', '4'),
-        ]),
-        getItem('Quản lý xuất chiếu', 'sub2', <AppstoreOutlined />, [
-            getItem('Thống kê xuất chiếu', '5'),
-            getItem(<Link href={"/showtime_management"}>Xuất chiếu</Link>, '6'),
-            getItem('Submenu', 'sub3', null, [getItem('Option 7', '7'), getItem('Option 8', '8')]),
-        ]),
-        getItem(`${session?.user?.name}`, 'account', <></>,
-        [
-            getItem('Thông tin tài khoản', 'information'),
-            getItem('Đổi mật khẩu', 'change-password'),
-            getItem(<button onClick={()=>signOut()}>Đăng xuất</button>, 'logout'),
-        ]),
-    ];
-    
+
     // submenu keys of first level
-    const rootSubmenuKeys = ['home', 'sub1', 'sub2', 'account'];
-    
+    const rootSubmenuKeys = ['home', 'phim', 'sub2', 'account'];
+
     const [openKeys, setOpenKeys] = useState(['sub1']);
 
     const onOpenChange: MenuProps['onOpenChange'] = (keys) => {
@@ -66,13 +48,47 @@ const MenuComponent = () => {
     };
 
     return (
-        <Menu
+        <>
+        {!session?<></>:<Menu
             mode="inline"
             openKeys={openKeys}
-            onOpenChange={onOpenChange}
-            style={{ width: "15%" }}
-            items={items}
-        />
-    );
+        onOpenChange={onOpenChange}
+        style={{width: "15%"}}
+        // items={items}
+        >
+        <Menu.Item key={'home'}>
+            <Link href={"/"}>Trang chủ</Link>
+        </Menu.Item>
+        <Menu.ItemGroup key={'phim'} title="Quản lí phim">
+            {session?.user.role == 2 && <Menu.Item key={'1'}>
+                <Link href={"/movie/config"}>Cấu hình</Link>
+            </Menu.Item>}
+            <Menu.Item key={'2'}>
+                <Link href={"/dashboard_ticket"}>Thống kê vé</Link>
+            </Menu.Item>
+            {session?.user.role == 2 && <Menu.Item key={'3'}>
+                <Link href={"/movie/create"}>Thêm phim</Link>
+            </Menu.Item>}
+        </Menu.ItemGroup>
+        <Menu.ItemGroup key={'staff'} title="Nhân viên">
+                {session?.user.role == 2 && <Menu.Item key={'staff'}>
+                    <Link href={"/staff"}>Quản lí nhân viên</Link>
+                </Menu.Item>}
+            </Menu.ItemGroup>
+        <Menu.ItemGroup key={'account'} title="Thông tin tài khoản">
+            <Menu.Item key={'information'}>
+                <Link href={"/information"}>Trang cá nhân</Link>
+            </Menu.Item>
+            <Menu.Item key={'change-password'}>
+                <Link href={"/change-password"}>Đổi mật khẩu</Link>
+            </Menu.Item>
+            <Menu.Item key={'logout'}>
+                <button onClick={() => signOut()}>Đăng xuất</button>
+            </Menu.Item>
+        </Menu.ItemGroup>
+        </Menu>
+}</>
+)
+    ;
 }
 export default MenuComponent; 

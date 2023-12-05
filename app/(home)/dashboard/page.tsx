@@ -1,163 +1,223 @@
 "use client"
-import React, {useEffect, useState} from "react";
-import {AutoComplete, Button, Col, Form, Row, Select} from "antd";
+import {useEffect, useState} from "react";
+import {Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
-import {BarChart, Card, Title} from "@tremor/react";
-import {CustomTooltipType} from "@tremor/react/dist/components/chart-elements/common/CustomTooltipProps";
+import {AreaChart, BarChart, Card, SearchSelect, SearchSelectItem, Title} from "@tremor/react";
 import {NumberUtils} from "../../../util/NumberUtils";
+import {useSession} from "next-auth/react";
+import {LoadingComponent} from "@components";
 
-
+type Movie = {
+    id: string,
+    movieName: string,
+    date: string,
+    year: number,
+    month: number,
+    totalPrice: number,
+    totalTicket: number
+}
 const DashBoard = () => {
-    const rootMovie = useFetch('/movie').data
-    const {data: total, setUri} = useFetch('');
-    const [movie, setMovie] = useState([]);
     const [formValues, setFormValues] = useState<any>({});
+    const [movie, setMovie] = useState<Movie[]>([]);
+    const [total, setTotal] = useState([]);
+    const [branch, setBranch] = useState([]);
+    const rootMovie = useFetch('/movie').data
+    const rootYear = useFetch('/dashboard/fillYear').data
     const [formTotal] = Form.useForm();
     const [formMovie] = Form.useForm();
-
+    const {data: session} = useSession();
 
     useEffect(() => {
+        if (session?.user.role == 2) {
+            fetchAPI.get('/branch').then((res) => (
+                setBranch(res.data)
+            ))
+        }
         handleTotalChange()
-    }, []);
+    }, [session]);
     const onFinishTotal = (values: any) => {
         if (values.year != undefined && values.branch != undefined) {
-            setUri(`/v2/dashboard/findTotalPriceTicket?year=${values.year}&branchName=${values.branch}`)
-            setFormValues(values)
+            setFormValues(values);
+            fetchAPI.get(`/v2/dashboard/findTotalPriceTicket?year=${values.year}&branchId=${values.branch}`)
+                .then((response) => setTotal(response.data))
+                .catch((error) => {
+                    setTotal([])
+                });
         }
     };
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
-            fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchName=${formValues.branch}&movieName=${values.movie}`)
-                .then((response) => response.data)
-                .then((data) => setMovie(data))
+            fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchId=${formValues.branch}&movieId=${values.movie}`)
+                .then((response) => setMovie(response.data))
                 .catch((error) => {
                     setMovie([])
-                    console.log('fetch data failed', error);
                 });
         }
     }
     const handleTotalChange = () => {
         formTotal.submit();
-        console.log(total)
     };
     const handleMovieChange = () => {
         formMovie.submit();
     };
 
     const handleOnExport = () => {
-        console.log(movie)
+        let ws_info = [
+            ["Tên Phim", movie[0].movieName],
+            ["Chi nhánh", formValues.branch]
+        ];
+        let ws_header = ["month", "totalTicket", "totalPrice", "year", "date"]
+        let ws_data = movie.map((n) => {
+            return {
+                month: n.month,
+                totalTicket: n.totalTicket,
+                totalPrice: n.totalPrice,
+                year: n.year,
+                date: n.date
+            }
+        })
+        const totalRow = {
+            month: "Tổng Cộng",
+            totalTicket: {f: `SUM(B4:B${ws_data.length + 3})`, t: 'n'},
+            totalPrice: {f: `SUM(C4:C${ws_data.length + 3})`, t: 'n', z: '#,##0 VNĐ'},
+            year: "",
+            date: ""
+        };
+        const ws = XLSX.utils.json_to_sheet(ws_data, {header: ws_header, origin: "A3"});
+        XLSX.utils.sheet_add_aoa(ws, ws_info, {origin: "C1"});
+        XLSX.utils.sheet_add_json(ws, [totalRow], {header: ws_header, skipHeader: true, origin: -1});
+        for(let i = 0 ; i<=5 ; i++){
+            if(!ws["!cols"]) ws["!cols"] = [];
+            if(!ws["!cols"][i]) ws["!cols"][i] = {wch: 12};
+        }
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(movie);
-        XLSX.utils.book_append_sheet(wb, ws, 'data');
-        XLSX.writeFileXLSX(wb, `Data.xlsx`)
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFileXLSX(wb, `${movie[0].movieName}.xlsx`, {cellStyles: true})
     }
 
-    const customTooltip :  React.ComponentType<CustomTooltipType> = ({ payload, active }) => {
-        if (!active || !payload) return null;
-        return (
-            <div className="w-56 rounded-tremor-default text-tremor-default bg-tremor-background p-2 shadow-tremor-dropdown border border-tremor-border">
-                {payload.map((category, idx) => (
-                    <div key={idx} className="flex flex-1 space-x-2.5">
-                        <div className={`w-1 flex flex-col bg-${category.color}-500 rounded`} />
-                        <div className="space-y-1">
-                            <p className="text-tremor-content">{category.dataKey}</p>
-                            <p className="font-medium text-tremor-content-emphasis">{NumberUtils.formatCurrency(category.value as number || 0) }</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    };
     return (
-        <div className="container">
-            <div className="mt-3">
-                <Card>
-                    <Title>Tổng doanh thu</Title>
-                    <Form
-                        form={formTotal}
-                        onFinish={onFinishTotal}
-                        layout={"inline"}
-                        name="control-hooks"
-                        style={{
-                            maxWidth: 'none',
-                        }}
-                    >
-                        <Form.Item
-                            name="branch"
-                            label="Chi Nhánh"
-                            initialValue={"Hưng Thịnh"}
-                        >
-                            <Select
-                                placeholder="Chọn chi nhánh"
-                                allowClear
-                                options={useFetch('/branch').data?.map((s: any) => ({label: s.name, value: s.name}))}
-                                onSelect={handleTotalChange}
+        <div>
+            {session ?
+                <div className="container">
+                    <div className="mt-3">
+                        <Card>
+                            <Title>Tổng doanh thu</Title>
+                            <Form
+                                form={formTotal}
+                                onFinish={onFinishTotal}
+                                layout={"inline"}
+                                name="TotalPrice"
+                                style={{
+                                    maxWidth: 'none',
+                                }}
                             >
-                            </Select>
-                        </Form.Item>
-                        <Form.Item
-                            name="year"
-                            label="Năm"
-                            initialValue={new Date().getFullYear()}
-                        >
-                            <Select
-                                placeholder="Chọn năm"
-                                allowClear
-                                options={useFetch('/dashboard/fillYear').data?.map((s: any) => ({
-                                    label: s.year,
-                                    value: s.year
-                                }))}
-                                onSelect={handleTotalChange}
-                            ></Select>
-                        </Form.Item>
-                    </Form>
-                    <BarChart
-                        className="h-[500px]"
-                        data={total}
-                        index="month"
-                        categories={["totalPrice"]}
-                        colors={["rose"]}
-                        showAnimation
-                        layout="vertical"
-                        customTooltip={customTooltip}
-                    />
-                </Card>
+                                <Form.Item
+                                    name="branch"
+                                    label="Chi Nhánh"
+                                    initialValue={session?.user.branchId || 'cn2'}
+                                    hidden={session?.user.role != 2}
+                                >
+                                    {branch.length > 0 &&
+                                        <Select
+                                            placeholder="Chọn chi nhánh"
+                                            allowClear
+                                            options={branch?.map((s: any) => ({
+                                                label: s.name,
+                                                value: s.id
+                                            }))}
+                                            onChange={handleTotalChange}
+                                            style={{
+                                                width: "100px"
+                                            }}
+                                        >
+                                        </Select>}
+                                </Form.Item>
+                                <Form.Item
+                                    name="year"
+                                    label="Năm"
+                                    initialValue={new Date().getFullYear()}
+                                >
+                                    <Select
+                                        placeholder="Chọn năm"
+                                        allowClear
+                                        options={rootYear?.map((s: any,idx:number) => ({
+                                            label: s.year,
+                                            value: s.year,
+                                            key:idx
+                                        }))}
+                                        onChange={handleTotalChange}
+                                    ></Select>
+                                </Form.Item>
+                            </Form>
+                            <BarChart
+                                className="h-[500px]"
+                                data={total}
+                                index="month"
+                                categories={["totalPrice"]}
+                                colors={["rose"]}
+                                showAnimation
+                                layout="vertical"
+                                valueFormatter={(number) => NumberUtils.formatCurrency(number || 0)}
+                                noDataText="Không có dữ liệu"
+                            />
+                        </Card>
 
-            </div>
-            <div className="my-3">
-                <h1>Thống kê phim</h1>
-                <Form
-                    form={formMovie}
-                    onFinish={onFinishMovie}
-                    name="control-hooks"
-                    style={{
-                        maxWidth: 'none',
-                    }}
-                >
-                    <Form.Item
-                        name="movie"
-                        label="Phim"
-                    >
-                        <AutoComplete
-                            placeholder="Chọn phim"
-                            options={rootMovie?.map((s: any) => ({label: s.name, value: s.name}))}
-                            filterOption={(inputValue, option) =>
-                                option!.value?.toString().toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                            }
-                            onSelect={handleMovieChange}
-                            allowClear
-                        />
-                    </Form.Item>
-                </Form>
-                {movie.length > 0 && (<>
-                    <Row>
-                        <Col md={12}>
-                            <Button onClick={handleOnExport}>Export</Button>
-                        </Col>
-                    </Row>
-                </>)}
-            </div>
+                    </div>
+                    <div className="my-3">
+                        <Card>
+                            <Title>Thống kê phim</Title>
+                            <Form
+                                form={formMovie}
+                                onFinish={onFinishMovie}
+                                style={{
+                                    maxWidth: 'none',
+                                }}
+                            >
+                                <Form.Item
+                                    name="movie"
+                                    label="Phim"
+                                >
+                                    <SearchSelect
+                                        placeholder="Chọn phim"
+                                        onChange={handleMovieChange}
+                                        enableClear={false}
+                                    >
+                                        {rootMovie?.map((s: any,idx:number) => (
+                                            <SearchSelectItem
+                                                value={s.id}
+                                                key={idx}
+                                            >
+                                                {s.name}
+                                            </SearchSelectItem>
+                                        ))}
+                                    </SearchSelect>
+                                </Form.Item>
+                            </Form>
+                            <div>
+                                <Row>
+                                    <Col md={12}>
+                                        {movie?.length > 0 && (
+                                            <Button onClick={handleOnExport}>Export</Button>
+                                        )}
+                                    </Col>
+                                </Row>
+                            </div>
+                            <AreaChart
+                                className="h-72 mt-4"
+                                data={movie}
+                                index="month"
+                                categories={["totalTicket", 'totalPrice']}
+                                colors={["indigo", "cyan"]}
+                                noDataText="Không có dữ liệu"
+                                valueFormatter={(number) => NumberUtils.formatCurrency(number || 0)}
+                                showAnimation
+                                yAxisWidth={100}
+                            />
+                        </Card>
+                    </div>
+                </div> : <LoadingComponent/>
+            }
         </div>
     );
 }
