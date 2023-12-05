@@ -11,8 +11,8 @@ import {IoIosRemoveCircle, IoMdAddCircleOutline} from "react-icons/io";
 import {FaSave} from "react-icons/fa";
 import EditableCell from "./EditTableCell";
 import {Item} from "./Item";
-import Link from "next/link";
 import InsertShowtimeForm from "./InsertShowtimeForm";
+import dayjs from "dayjs";
 
 const EditableTable: React.FC = () => {
     const [form] = Form.useForm();
@@ -63,7 +63,7 @@ const EditableTable: React.FC = () => {
 
     const edit = (record: Item) => {
         record.showDate = moment(record.showDate);
-        record.startTime = moment(record.startTime);
+        record.startTime = dayjs(`${record.startTime}`, 'HH:mm:ss');
 
         setSelectedBranchId(record.branchId);
         form.setFieldsValue({...record});
@@ -90,7 +90,7 @@ const EditableTable: React.FC = () => {
                     languageOfMovieId: newData[index].languageOfMovieId,
                     dimensionId: newData[index].dimensionId,
                     showDate: newData[index].showDate,
-                    startTime: newData[index].startTime.format('HH:mm:ss'),
+                    startTime: newData[index].startTime.format("HH:mm:ss"),
                     price: newData[index].price
                 };
 

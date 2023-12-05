@@ -1,4 +1,6 @@
 import {Moment} from "moment/moment";
+import {DateTime} from "next-auth/providers/kakao";
+import {Dayjs} from "dayjs";
 
 export interface Item {
     id: number;
@@ -11,7 +13,7 @@ export interface Item {
     branchName: string;
     branchAddress: string;
     showDate: Moment;
-    startTime: Moment;
+    startTime: Dayjs;
     languageId: number;
     languageName: string;
     dimensionName: string;

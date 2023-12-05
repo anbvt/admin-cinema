@@ -105,7 +105,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
             case 'date':
                 return <DatePicker defaultValue={dayjs(`${record.showDate}`)}/>;
             case 'time':
-                return <TimePicker defaultValue={dayjs(`${record.startTime}`, 'HH:mm:ss')}/>;
+                return <TimePicker />;
             default:
                 return <Input/>;
         }

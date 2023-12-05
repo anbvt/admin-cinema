@@ -28,7 +28,7 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
                 setRooms(roomsResponse.data);
 
                 const languageResponse =
-                    await fetchAPI(`/languageOfMovie/get-by-movieconfig?branchId=${selectedBranchId}`);
+                    await fetchAPI(`/languageOfMovie/get-by-movie-config?branchId=${selectedBranchId}`);
                 setMovieAndLanguage(languageResponse.data);
             } catch (e: any) {
                 console.log(e)
