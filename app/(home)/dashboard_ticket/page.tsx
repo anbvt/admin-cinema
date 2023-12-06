@@ -1,4 +1,5 @@
 "use client"
+
 import { fetchAPI } from "@hooks";
 import { Card, LineChart, SearchSelect, SearchSelectItem, Title } from "@tremor/react";
 import { Form } from "antd";

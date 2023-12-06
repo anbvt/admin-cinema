@@ -40,7 +40,6 @@ export const authconfig: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async jwt({user, token, session, trigger}) {
-
             return {...token, ...user};
         },
         async session({session, token}) {

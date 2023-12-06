@@ -12,7 +12,6 @@ const MenuComponent = () => {
     const {data: session} = useSession();
 
     useEffect(() => {
-
     }, [session]);
 
     function getItem(
@@ -33,7 +32,6 @@ const MenuComponent = () => {
         } : {} as MenuItem;
     }
 
-
     // submenu keys of first level
     const rootSubmenuKeys = ['home', 'phim', 'sub2', 'account'];
 
@@ -50,46 +48,52 @@ const MenuComponent = () => {
 
     return (
         <>
-        {!session?<></>:<Menu
-            mode="inline"
-            openKeys={openKeys}
-        onOpenChange={onOpenChange}
-        style={{width: "15%"}}
-        // items={items}
-        >
-        <Menu.Item key={'home'}>
-            <Link href={"/"}>Trang chủ</Link>
-        </Menu.Item>
-        <Menu.ItemGroup key={'phim'} title="Quản lí phim">
-            {session?.user.role == 2 && <Menu.Item key={'1'}>
-                <Link href={"/movie/config"}>Cấu hình</Link>
-            </Menu.Item>}
-            <Menu.Item key={'2'}>
-                <Link href={"/dashboard_ticket"}>Thống kê vé</Link>
-            </Menu.Item>
-            {session?.user.role == 2 && <Menu.Item key={'3'}>
-                <Link href={"/movie/manage"}>Khởi tạo phim</Link>
-            </Menu.Item>}
-        </Menu.ItemGroup>
-        <Menu.ItemGroup key={'staff'} title="Nhân viên">
-                {session?.user.role == 2 && <Menu.Item key={'staff'}>
-                    <Link href={"/staff"}>Quản lí nhân viên</Link>
-                </Menu.Item>}
-            </Menu.ItemGroup>
-        <Menu.ItemGroup key={'account'} title="Thông tin tài khoản">
-            <Menu.Item key={'information'}>
-                <Link href={"/information"}>Trang cá nhân</Link>
-            </Menu.Item>
-            <Menu.Item key={'change-password'}>
-                <Link href={"/change-password"}>Đổi mật khẩu</Link>
-            </Menu.Item>
-            <Menu.Item key={'logout'}>
-                <button onClick={() => signOut()}>Đăng xuất</button>
-            </Menu.Item>
-        </Menu.ItemGroup>
-        </Menu>
-}</>
-)
-    ;
+            {!session ? <></> : <Menu
+                mode="inline"
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
+                style={{width: "15%"}}
+                // items={items}
+            >
+                <Menu.Item key={'home'}>
+                    <Link href={"/"}>Trang chủ</Link>
+                </Menu.Item>
+                <Menu.ItemGroup key={'phim'} title="Quản lí phim">
+                    {session?.user.role == 2 && <Menu.Item key={'1'}>
+                        <Link href={"/movie/config"}>Cấu hình</Link>
+                    </Menu.Item>}
+                    <Menu.Item key={'2'}>
+                        <Link href={"/dashboard_ticket"}>Thống kê vé</Link>
+                    </Menu.Item>
+                    {session?.user.role == 2 && <Menu.Item key={'3'}>
+                        <Link href={"/movie/create"}>Thêm phim</Link>
+                    </Menu.Item>}
+                </Menu.ItemGroup>
+                <Menu.ItemGroup key={'showtime'} title="Xuất chiếu">
+                    {session?.user.role == 2 &&
+                        <Menu.Item key={'showtime'}>
+                            <Link href={"/showtime_management"}>Quản lí xuất chiếu</Link>
+                        </Menu.Item>}
+                </Menu.ItemGroup>
+                <Menu.ItemGroup key={'staff'} title="Nhân viên">
+                    {session?.user.role == 2 && <Menu.Item key={'staff'}>
+                        <Link href={"/staff"}>Quản lí nhân viên</Link>
+                    </Menu.Item>}
+                </Menu.ItemGroup>
+                <Menu.ItemGroup key={'account'} title="Thông tin tài khoản">
+                    <Menu.Item key={'information'}>
+                        <Link href={"/information"}>Trang cá nhân</Link>
+                    </Menu.Item>
+                    <Menu.Item key={'change-password'}>
+                        <Link href={"/change-password"}>Đổi mật khẩu</Link>
+                    </Menu.Item>
+                    <Menu.Item key={'logout'}>
+                        <button onClick={() => signOut()}>Đăng xuất</button>
+                    </Menu.Item>
+                </Menu.ItemGroup>
+            </Menu>
+            }</>
+    )
+        ;
 }
 export default MenuComponent; 

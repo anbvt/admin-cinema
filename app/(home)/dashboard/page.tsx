@@ -4,7 +4,7 @@ import {Button, Col, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
 import {AreaChart, BarChart, Card, SearchSelect, SearchSelectItem, Title} from "@tremor/react";
-import {NumberUtils} from "../../../util/NumberUtils";
+import {NumberUtils} from "@util/NumberUtils";
 import {useSession} from "next-auth/react";
 import {LoadingComponent} from "@components";
 
