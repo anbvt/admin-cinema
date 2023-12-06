@@ -117,9 +117,8 @@ const TableComponent = () => {
             },
         ];
         const data: ExpandedDataType[] = detailMovieConfig
-        return <>
-            <Table columns={columns} dataSource={data} size="middle" pagination={false}
-            />
+        return <div key={expandedRowKeys[0]}>
+            <Table columns={columns} dataSource={data} size="middle" pagination={false}/>
             <Modal title="" open={isModalOpen} onCancel={() => setIsModalOpen(false)} okButtonProps={{ style: { display: 'none' } }}>
                 {selectedRowData && (
                     <Form form={form} onFinish={handleSave} >
@@ -144,7 +143,7 @@ const TableComponent = () => {
                     </Form>
                 )}
             </Modal >
-        </>;
+        </div>;
     }
 
     const columns: TableColumnsType<DataType> = [
