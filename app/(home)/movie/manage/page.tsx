@@ -11,13 +11,15 @@ import {errorNotification, successNotification} from "@util/Notification";
 import type {ColumnsType, ColumnType} from 'antd/es/table';
 import dayjs from 'dayjs';
 import type {FilterConfirmProps} from 'antd/es/table/interface';
+import Image from "next/image";
 
 interface DataType {
     key: string;
     id: string;
     name: string;
     limitage: number;
-    status: string
+    status: string,
+    yearofmanufacture: number
 }
 
 const ManageMovie = () => {
@@ -118,7 +120,7 @@ const ManageMovie = () => {
             title: 'Tên phim',
             dataIndex: 'name',
             key: 'name',
-            width: '40%',
+            width: '35%',
             ellipsis: true,
             ...getColumnSearchProps('name'),
         },
@@ -126,6 +128,7 @@ const ManageMovie = () => {
             title: 'Năm chiếu',
             dataIndex: 'yearofmanufacture',
             key: 'yearofmanufacture',
+            sorter: (a, b) => a.yearofmanufacture - b.yearofmanufacture,
         },
         {
             title: 'Quốc gia',
@@ -170,9 +173,15 @@ const ManageMovie = () => {
             sorter: (a, b) => a.limitage - b.limitage,
         },
         {
-            title: 'poster',
+            title: 'Poster',
             dataIndex: 'poster',
             key: 'poster',
+            render: (_, record, idx) => (
+                <div key={idx}>
+                    <Image src={`https://zuhot-cinema-images.s3.amazonaws.com/poster-movie/${_}`} alt={'Hình ảnh phim'}
+                           width={80} height={100}/>
+                </div>
+            )
         },
         {
             title: "Chỉnh sửa",
@@ -200,7 +209,6 @@ const ManageMovie = () => {
     };
     // ChooseFileSystem
     const normFile = (e: any) => {
-        console.log(e)
         if (e.file?.status === "removed") {
             setUpload(undefined)
         } else setUpload(e.file);
@@ -233,6 +241,8 @@ const ManageMovie = () => {
                 setCreating(false);
                 setModalOpenCreate(false)
             })
+        } else {
+            errorNotification('Vui lòng chọn hình ảnh!!!')
         }
     };
     const onUpdate = (values: any) => {
@@ -265,7 +275,7 @@ const ManageMovie = () => {
     return (
         <div>
             {!session ? <LoadingComponent/> : <div>
-                <Card title="Thông tin phim" key="card">
+                <Card title="Thông tin phim">
                     <Button type="default" className="buttonAction mb-3" onClick={() => setModalOpenCreate(true)}>
                         Thêm phim
                     </Button>
@@ -275,14 +285,15 @@ const ManageMovie = () => {
                         width={1200}
                         open={modalOpenCreate}
                         onCancel={() => setModalOpenCreate(false)}
-                        footer={[<Button key="submit" hidden></Button>,
-                            <Button key="back" onClick={() => setModalOpenCreate(false)}>Hủy</Button>]}
+                        okButtonProps={{hidden: true}}
+                        cancelButtonProps={{hidden: true}}
                     >
                         <Form
                             name="formInsertMovie"
                             {...formItemLayout}
                             style={{maxWidth: 'none'}}
                             onFinish={onCreate}
+                            preserve={false}
                         >
                             {/*Mã Phim*/}
                             <Form.Item
@@ -315,7 +326,7 @@ const ManageMovie = () => {
                                 label="Thời lượng"
                                 rules={[{required: true, message: 'Vui lòng nhập thời lượng phim'}]}
                             >
-                                <Input placeholder="thời lượng" addonAfter="Phút"/>
+                                <Input placeholder="Thời lượng" addonAfter="Phút"/>
                             </Form.Item>
                             {/*Giới hạn độ tuổi*/}
                             <Form.Item
@@ -432,20 +443,21 @@ const ManageMovie = () => {
                                         {creating ? 'Đang thêm phim' : 'Thêm phim'}
                                     </Button>
                                     <Button htmlType="reset">Làm mới</Button>
+                                    <Button htmlType="button" onClick={() => setModalOpenCreate(false)}>Hủy</Button>
                                 </Space>
                             </Form.Item>
                         </Form>
                     </Modal>
 
-                    <Table dataSource={rootMovie} columns={columns} size="small"/>
+                    <Table dataSource={rootMovie} columns={columns} size="small" key="data"/>
                     <Modal
                         title="Chỉnh sửa Phim"
                         centered
                         width={1200}
                         open={modalOpenUpdate}
                         onCancel={() => setModalOpenUpdate(false)}
-                        footer={[<Button key="submit" hidden></Button>,
-                            <Button key="back" onClick={() => setModalOpenUpdate(false)}>Hủy</Button>]}
+                        okButtonProps={{hidden: true}}
+                        cancelButtonProps={{hidden: true}}
                         destroyOnClose
                     >
                         <Form
@@ -499,7 +511,7 @@ const ManageMovie = () => {
                                 label="Thời lượng"
                                 rules={[{required: true, message: 'Vui lòng nhập thời lượng phim'}]}
                             >
-                                <Input placeholder="thời lượng" addonAfter="Phút"/>
+                                <Input placeholder="Thời lượng" addonAfter="Phút"/>
                             </Form.Item>
                             {/*Giới hạn độ tuổi*/}
                             <Form.Item
@@ -629,6 +641,7 @@ const ManageMovie = () => {
                                     <Button type="default" htmlType="submit" loading={creating} disabled={creating}>
                                         {creating ? 'Đang cập nhật phim' : 'cập nhật'}
                                     </Button>
+                                    <Button htmlType="button" onClick={() => setModalOpenUpdate(false)}>Hủy</Button>
                                 </Space>
                             </Form.Item>
                         </Form>
