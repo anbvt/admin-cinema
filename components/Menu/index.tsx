@@ -59,14 +59,14 @@ const MenuComponent = () => {
                     <Link href={"/"}>Trang chủ</Link>
                 </Menu.Item>
                 <Menu.ItemGroup key={'phim'} title="Quản lí phim">
-                    {session?.user.role == 2 && <Menu.Item key={'1'}>
-                        <Link href={"/movie/config"}>Cấu hình</Link>
-                    </Menu.Item>}
-                    <Menu.Item key={'2'}>
+                <Menu.Item key={'1'}>
                         <Link href={"/dashboard_ticket"}>Thống kê vé</Link>
                     </Menu.Item>
+                    {session?.user.role == 2 && <Menu.Item key={'2'}>
+                        <Link href={"/movie/config"}>Cấu hình</Link>
+                    </Menu.Item>}
                     {session?.user.role == 2 && <Menu.Item key={'3'}>
-                        <Link href={"/movie/create"}>Thêm phim</Link>
+                        <Link href={"/movie/manage"}>Khởi tạo phim</Link>
                     </Menu.Item>}
                 </Menu.ItemGroup>
                 <Menu.ItemGroup key={'showtime'} title="Xuất chiếu">
