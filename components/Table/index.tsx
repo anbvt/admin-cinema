@@ -41,10 +41,10 @@ const TableComponent = () => {
 
     useEffect(() => {
         fetchAPI.get("/movie")
-            .then(response => {
+            .then((response: any) => {
                 setdDataMovie(response.data);
             })
-            .catch(error => {
+            .catch((error: any) => {
             });
     }, [status]);
 
@@ -57,7 +57,7 @@ const TableComponent = () => {
     };
 
     const handleSave = () => {
-        form.validateFields().then((values) => {
+        form.validateFields().then((values: any) => {
             if (values.fromDate) {
                 const postData = {
                     startDate: values.fromDate[0] ? values.fromDate[0].format('YYYY-MM-DD') : null,
@@ -69,12 +69,12 @@ const TableComponent = () => {
                 };
 
                 fetchAPI.post("/movieConfig/update", postData)
-                    .then(response => {
+                    .then((response: any) => {
                         openNotification('topRight', api.success, 'Thành công');
                         setStatus(!status);
                         setIsModalOpen(false);
                     })
-                    .catch(error => {
+                    .catch((error: any) => {
                         openNotification('topRight', api.error, 'Thất bại');
                     });
             } else {
@@ -94,18 +94,17 @@ const TableComponent = () => {
     };
 
     useEffect(() => {
-        fetchAPI.get<ExpandedDataType[]>("/movieConfig/findAllByMovieId?movieId=" + expandedRowKeys[0]).then((a) => {
+        fetchAPI.get<ExpandedDataType[]>("/movieConfig/findAllByMovieId?movieId=" + expandedRowKeys[0]).then((a: any) => {
             setDetailMovieConfig(a.data.map((s: any) => { return { ...s, key: s.branchId } }));
         })
     }, [expandedRowKeys, status])
-
     const expandedRowRender = () => {
         const columns: TableColumnsType<ExpandedDataType> = [
             { title: "Chi nhánh", dataIndex: "branchId", key: "branchId" },
-            { title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate" },
-            { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate" },
-            { title: "Ngày tạo", dataIndex: "createDate", key: "createDate" },
-            { title: "Ngày cập nhật", dataIndex: "updateDate", key: "updateDate" },
+            { title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
+            { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
+            { title: "Ngày tạo", dataIndex: "createDate", key: "createDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
+            { title: "Ngày cập nhật", dataIndex: "updateDate", key: "updateDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
             {
                 title: "Action",
                 render: (_, record) => (
@@ -118,9 +117,8 @@ const TableComponent = () => {
             },
         ];
         const data: ExpandedDataType[] = detailMovieConfig
-        return <>
-            <Table columns={columns} dataSource={data} size="middle" pagination={false}
-            />
+        return <div key={expandedRowKeys[0]}>
+            <Table columns={columns} dataSource={data} size="middle" pagination={false}/>
             <Modal title="" open={isModalOpen} onCancel={() => setIsModalOpen(false)} okButtonProps={{ style: { display: 'none' } }}>
                 {selectedRowData && (
                     <Form form={form} onFinish={handleSave} >
@@ -145,7 +143,7 @@ const TableComponent = () => {
                     </Form>
                 )}
             </Modal >
-        </>;
+        </div>;
     }
 
     const columns: TableColumnsType<DataType> = [
