@@ -12,7 +12,6 @@ const MenuComponent = () => {
     const {data: session} = useSession();
 
     useEffect(() => {
-
     }, [session]);
 
     function getItem(

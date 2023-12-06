@@ -4,9 +4,11 @@ import React, {useEffect, useRef, useState} from "react";
 import {fetchAPI} from "@hooks";
 import {Option} from "antd/es/mentions";
 import moment from "moment/moment";
+import {IoAddCircleSharp} from "react-icons/io5";
 
 interface InsertShowtimeFormProps {
-    branches: any,
+    branchOfStaff: string,
+    branchName?: string,
     dimension: any,
     setAdded: (check: boolean) => void
 }
@@ -15,20 +17,18 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
     const [open, setOpen] = useState(false);
     const [rooms, setRooms] = useState<any>([]);
     const [movieAndLanguage, setMovieAndLanguage] = useState<any>([]);
-    const [selectedBranchId, setSelectedBranchId] = useState<string>('');
-    const [selectMovieDisable, setSelectMovieDisable] = useState<boolean>(true);
     const [selectRoomDisable, setSelectRoomDisable] = useState<boolean>(true);
     const [form] = Form.useForm();
 
     useEffect(() => {
-        if (!selectedBranchId) return;
+        if (!props.branchOfStaff) return;
         const init = async () => {
             try {
-                const roomsResponse = await fetchAPI(`/room/get-by-branch?branchId=${selectedBranchId}`);
+                const roomsResponse = await fetchAPI(`/room/get-by-branch?branchId=${props.branchOfStaff}`);
                 setRooms(roomsResponse.data);
 
                 const languageResponse =
-                    await fetchAPI(`/languageOfMovie/get-by-movie-config?branchId=${selectedBranchId}`);
+                    await fetchAPI(`/languageOfMovie/get-by-movie-config?branchId=${props.branchOfStaff}`);
                 setMovieAndLanguage(languageResponse.data);
             } catch (e: any) {
                 console.log(e)
@@ -36,7 +36,7 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
         }
 
         init()
-    }, [selectedBranchId]);
+    }, [props.branchOfStaff]);
 
     const showModal = () => {
         setOpen(true);
@@ -57,18 +57,14 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
 
     const handleAddShowtimeIsCancel = async () => {
         setOpen(false);
+        setSelectRoomDisable(true);
         form.resetFields();
-    };
-
-    const handleBranchChange = async (value: string) => {
-        setSelectedBranchId(value);
-        setSelectMovieDisable(false);
     };
 
     return (
         <>
-            <Button type="primary" onClick={showModal} className={"flex justify-center gap-2 my-5 bg-black"}>
-                Thêm xuất chiếu <IoMdAddCircleOutline/>
+            <Button type="primary" onClick={showModal} className={"rounded-xl my-5 bg-black"}>
+                <IoAddCircleSharp />
             </Button>
             <Modal
                 open={open}
@@ -86,36 +82,25 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
                     onFinish={handleAddShowtimeIsOk}
                     layout="vertical" // Cấu hình layout cho form
                 >
-                    <Space className={"grid grid-cols-5"}>
+                    <Space>
                         <Form.Item
                             label="Chi nhánh"
-                            name="branchId"
-                            rules={[{required: true, message: 'Vui lòng chọn chi nhánh!'}]}
-                            className={"col-span-3"}
                         >
-                            <Select onChange={handleBranchChange}>
-                                {props.branches.map((branch: any) => (
-                                    <Option value={branch.id} key={branch.id}>
-                                        {branch.name}
-                                    </Option>
-                                ))}
-                            </Select>
+                            <p className={"flex-wrap w-56"}>{props.branchName}</p>
                         </Form.Item>
 
                         <Form.Item
                             label="Phòng"
                             name="roomId"
                             rules={[{required: true, message: 'Vui lòng chọn phòng!'}]}
-                            className={"col-span-2"}
+                            className={"ms-7"}
+                            style={{ width: '150%' }}
                         >
-                            <Select
-                                disabled={selectMovieDisable}
-                                onChange={() => setSelectRoomDisable(false)}
-                            >
+                            <Select onChange={() => setSelectRoomDisable(false)}>
                                 {rooms.map((room: any) => (
-                                    <Option value={room.id} key={room.id}>
+                                    <Select.Option value={room.id} key={room.id}>
                                         {room.name}
-                                    </Option>
+                                    </Select.Option>
                                 ))}
                             </Select>
                         </Form.Item>
@@ -128,9 +113,9 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
                     >
                         <Select disabled={selectRoomDisable}>
                             {movieAndLanguage.map((mnl: any) => (
-                                <Option value={mnl.id} key={mnl.id}>
+                                <Select.Option value={mnl.id} key={mnl.id}>
                                     {mnl.id} - {mnl.movieName} ({mnl.languageName})
-                                </Option>
+                                </Select.Option>
                             ))}
                         </Select>
                     </Form.Item>
@@ -143,9 +128,9 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
                         >
                             <Select>
                                 {props.dimension.map((dimension: any) => (
-                                    <Option value={dimension.id} key={dimension.id}>
+                                    <Select.Option value={dimension.id} key={dimension.id}>
                                         {dimension.name}
-                                    </Option>
+                                    </Select.Option>
                                 ))}
                             </Select>
                         </Form.Item>

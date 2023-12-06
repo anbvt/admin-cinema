@@ -1,5 +1,5 @@
 import React from 'react';
-import {Table, Select, Input, Form, DatePicker, TimePicker, Button, Modal} from 'antd';
+import {Table, Select, Input, Form, DatePicker, TimePicker, Button, Modal, Space} from 'antd';
 import {FormInstance} from 'antd/lib/form';
 
 const {Option} = Select;
@@ -15,7 +15,6 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
     index: number;
     children: React.ReactNode;
     form: FormInstance<any>;
-    branches: any;
     rooms: any;
     dimension: any;
     movieAndLanguage: any;
@@ -31,19 +30,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
                                                        index,
                                                        children,
                                                        form,
-                                                       branches,
                                                        rooms,
                                                        dimension,
                                                        movieAndLanguage,
                                                        setSelectedBranchId,
                                                        ...restProps
                                                    }) => {
-    const handleBranchChange = (value: string) => {
-        const foundItems = branches.filter((item: any) => item.name === value)
-        record.branchId = foundItems[0].id;
-        setSelectedBranchId(foundItems[0].id);
-    };
-
     const handleLanguageOfMovieChange = (value: number) => {
         record.languageOfMovieId = value;
     };
@@ -61,33 +53,31 @@ const EditableCell: React.FC<EditableCellProps> = ({
     const inputNode = () => {
         switch (inputType) {
             case 'select':
-                if (dataIndex === 'roomName') {
+                if (dataIndex === 'roomName')
                     return (
                         <Select onChange={handleRoomChange}>
                             {rooms.map((room: any) => (
-                                <Option value={room.name} key={room.id}>
-                                    {room.name}
-                                </Option>
+                                <Select.Option
+                                    value={room.name}
+                                    key={room.id}
+                                    children={<p>{room.name}</p>}
+                                />
                             ))}
                         </Select>
                     )
-                } else if (dataIndex === 'branchName') {
+                else if (dataIndex === 'movieAndLanguage')
                     return (
-                        <Select onChange={handleBranchChange}>
-                            {branches.map((branch: any) => (
-                                <Option value={branch.name} key={branch.id}>
-                                    {branch.name}
-                                </Option>
-                            ))}
-                        </Select>
-                    )
-                } else if (dataIndex === 'movieAndLanguage')
-                    return (
-                        <Select onChange={handleLanguageOfMovieChange}>
+                        <Select
+                            className={"!w-72 h-fit"}
+                            onChange={handleLanguageOfMovieChange}>
                             {movieAndLanguage.map((mnl: any) => (
-                                <Option value={mnl.id} key={mnl.id}>
-                                    {mnl.id} - {mnl.movieName} ({mnl.languageName})
-                                </Option>
+                                <Select.Option
+                                    value={mnl.id}
+                                    key={mnl.id}
+                                    children={
+                                        <p className={"flex-wrap whitespace-normal"}>{mnl.id} - {mnl.movieName} ({mnl.languageName})</p>
+                                    }
+                                />
                             ))}
                         </Select>
                     )
@@ -95,9 +85,11 @@ const EditableCell: React.FC<EditableCellProps> = ({
                     return (
                         <Select onChange={handleDimensionChange}>
                             {dimension.map((d: any) => (
-                                <Option value={d.name} key={d.id}>
-                                    {d.name}
-                                </Option>
+                                <Select.Option
+                                    value={d.name}
+                                    key={d.id}
+                                    children={<p className={"flex-wrap"}>{d.name}</p>}
+                                />
                             ))}
                         </Select>
                     )
@@ -105,8 +97,16 @@ const EditableCell: React.FC<EditableCellProps> = ({
             case 'date':
                 return <DatePicker defaultValue={dayjs(`${record.showDate}`)}/>;
             case 'time':
-                return <TimePicker />;
+                return <TimePicker/>;
             default:
+                if (dataIndex === 'price')
+                    return <Input
+                        type={"number"}
+                        step={5000}
+                        min={0}
+                        className={"w-28"}
+                    />
+
                 return <Input/>;
         }
     };

@@ -1,7 +1,7 @@
 'use client'
 
-import React, {useEffect, useState} from 'react';
-import {Table, Select, Form, Button, Modal, notification} from 'antd';
+import React, {useEffect, useRef, useState} from 'react';
+import {Table, Select, Form, Button, Modal, notification, InputRef} from 'antd';
 
 const {Option} = Select;
 import {fetchAPI} from "@hooks";
@@ -15,59 +15,70 @@ import InsertShowtimeForm from "./InsertShowtimeForm";
 import dayjs from "dayjs";
 import {DateUtils} from "@util/DateUtils";
 import {NumberUtils} from "@util/NumberUtils";
+import {useSession} from "next-auth/react";
 
 const EditableTable: React.FC = () => {
     const [form] = Form.useForm();
     const [data, setData] = useState<Item[]>([]);
-    const [branches, setBranches] = useState<any>([]);
     const [rooms, setRooms] = useState<any>([]);
-    const [selectedBranchId, setSelectedBranchId] = useState<string>('');
     const [dimension, setDimension] = useState<any>([]);
     const [movieAndLanguage, setMovieAndLanguage] = useState<any>([]);
     const [editingKey, setEditingKey] = useState<number>();
     const [removed, setRemoved] = useState<number>();
     const [added, setAdded] = useState<boolean>();
+    const {data: session} = useSession();
+    const branchOfStaff: string = session?.user.branchId;
 
     useEffect(() => {
+        if (!branchOfStaff) return;
+
         const init = async () => {
-            const response = await fetchAPI("/showtime");
+            const response = await fetchAPI(`/showtime/get-by-branch?branchId=${branchOfStaff}`);
+            response.data.forEach((item: Item) => {
+                item.showDate = DateUtils.formatDate(new Date(moment(item.showDate).toDate()))
+                item.price = NumberUtils.formatCurrency(item.price as number);
+                item.movieAndLanguage = `${item.languageOfMovieId} - ${item.movieName} (${item.languageName})`;
+            })
             setData(response.data);
         }
 
         init();
-    }, [editingKey, removed, added]);
+    }, [editingKey, removed, added, branchOfStaff]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const branchResponse = await fetchAPI("/branch");
-            setBranches(branchResponse.data);
-
-            const dimensionResponse = await fetchAPI("/dimension");
+            const dimensionResponse = await fetchAPI(`/dimension`);
             setDimension(dimensionResponse.data);
-
-            const languageResponse = await fetchAPI("/languageOfMovie");
-            setMovieAndLanguage(languageResponse.data);
         }
 
         fetchData();
     }, []);
 
     useEffect(() => {
-        if (!selectedBranchId) return;
+        if (!branchOfStaff) return;
 
-        fetchAPI(`/room/get-by-branch?branchId=${selectedBranchId}`).then((resp) => {
-            setRooms(resp.data);
-            console.log(resp.data)
-        });
-    }, [selectedBranchId]);
+        const init = async () => {
+            const roomsResponse =
+                await fetchAPI(`/room/get-by-branch?branchId=${branchOfStaff}`)
+            setRooms(roomsResponse.data);
+
+            const languageResponse =
+                await fetchAPI(`/languageOfMovie/get-by-movie-config?branchId=${branchOfStaff}`);
+            setMovieAndLanguage(languageResponse.data);
+        }
+
+        init()
+    }, [branchOfStaff]);
 
     const isEditing = (record: Item) => record.id === editingKey;
 
     const edit = (record: Item) => {
+        const priceFormated =
+            parseFloat(record.price.toString().replace(/[^\d.,-]/g, '').replace('.', ''))
+
         record.showDate = moment(record.showDate);
         record.startTime = dayjs(`${record.startTime}`, 'HH:mm:ss');
-
-        setSelectedBranchId(record.branchId);
+        record.price = priceFormated;
         form.setFieldsValue({...record});
         setEditingKey(record.id);
     };
@@ -85,7 +96,7 @@ const EditableTable: React.FC = () => {
 
             if (index > -1) {
                 const item = newData[index];
-                newData.splice(index, 1, {...item, ...row});
+                const dataRequest = newData.splice(index, 1, {...item, ...row});
                 const showTime = {
                     id: newData[index].id,
                     roomId: newData[index].roomId,
@@ -93,13 +104,12 @@ const EditableTable: React.FC = () => {
                     dimensionId: newData[index].dimensionId,
                     showDate: newData[index].showDate,
                     startTime: newData[index].startTime.format("HH:mm:ss"),
-                    price: newData[index].price
+                    price: newData[index].price.toString().replace(/[^\d.,]/g, '')
                 };
 
-                fetchAPI.post("/showtime/updateShowTime", {...showTime});
-
+                await fetchAPI.post("/showtime/updateShowTime", {...showTime});
                 setData(newData);
-                setEditingKey(undefined);
+                setEditingKey(index);
             } else {
                 newData.push(row as Item);
                 setData(newData);
@@ -122,11 +132,6 @@ const EditableTable: React.FC = () => {
             });
     };
 
-    data.forEach((item: Item) => {
-        item.showDate = DateUtils.formatDate(new Date(moment(item.showDate).toDate()))
-        item.price = NumberUtils.formatCurrency(item.price as number);
-        item.movieAndLanguage = `${item.languageOfMovieId} - ${item.movieName} (${item.languageName})`
-    })
 
     const columns = [
         {
@@ -138,20 +143,14 @@ const EditableTable: React.FC = () => {
         {
             title: 'Phim - Ngôn ngữ',
             dataIndex: 'movieAndLanguage',
-            width: '30%',
+            width: '35%',
             editable: true,
-        },
-        {
-            title: 'Địa chỉ',
-            dataIndex: 'branchAddress',
-            width: '20%',
-            editable: false,
         },
         {
             title: 'Chi nhánh',
             dataIndex: 'branchName',
             width: '10%',
-            editable: true,
+            editable: false,
         },
         {
             title: 'Ngày chiếu',
@@ -243,18 +242,21 @@ const EditableTable: React.FC = () => {
                 title: col.title,
                 editing: isEditing(record),
                 form,
-                branches,
                 rooms,
                 dimension,
                 movieAndLanguage,
-                setSelectedBranchId,
             }),
         };
     });
 
     return (
         <>
-            <InsertShowtimeForm branches={branches} dimension={dimension} setAdded={(check: boolean) => {setAdded(check)}}/>
+            <InsertShowtimeForm
+                branchOfStaff={branchOfStaff}
+                branchName={data[0]?.branchName}
+                dimension={dimension}
+                setAdded={(check: boolean) => {setAdded(check)}}
+            />
             <Form form={form} component={false}>
                 <Table
                     components={{
