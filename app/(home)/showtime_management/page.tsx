@@ -1,13 +1,11 @@
 'use client'
 
-import React, {useEffect, useRef, useState} from 'react';
-import {Table, Select, Form, Button, Modal, notification, InputRef} from 'antd';
-
-const {Option} = Select;
+import React, {useEffect, useState} from 'react';
+import {Button, Form, Modal, notification, Select, Table} from 'antd';
 import {fetchAPI} from "@hooks";
-import moment, {Moment} from "moment";
+import moment from "moment";
 import {MdCancel, MdEditSquare} from "react-icons/md";
-import {IoIosRemoveCircle, IoMdAddCircleOutline} from "react-icons/io";
+import {IoIosRemoveCircle} from "react-icons/io";
 import {FaSave} from "react-icons/fa";
 import EditableCell from "./EditTableCell";
 import {Item} from "./Item";
@@ -16,6 +14,8 @@ import dayjs from "dayjs";
 import {DateUtils} from "@util/DateUtils";
 import {NumberUtils} from "@util/NumberUtils";
 import {useSession} from "next-auth/react";
+
+const {Option} = Select;
 
 const EditableTable: React.FC = () => {
     const [form] = Form.useForm();
@@ -31,7 +31,6 @@ const EditableTable: React.FC = () => {
 
     useEffect(() => {
         if (!branchOfStaff) return;
-
         const init = async () => {
             const response = await fetchAPI(`/showtime/get-by-branch?branchId=${branchOfStaff}`);
             response.data.forEach((item: Item) => {
