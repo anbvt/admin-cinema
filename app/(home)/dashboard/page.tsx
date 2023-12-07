@@ -1,13 +1,15 @@
 "use client"
 import {useEffect, useState} from "react";
-import {Button, Col, Form, Row, Select} from "antd";
+import {Button, Col, DatePicker, Form, Row, Select} from "antd";
 import {fetchAPI, useFetch} from "@hooks";
 import * as XLSX from "xlsx"
 import {AreaChart, BarChart, Card, SearchSelect, SearchSelectItem, Title} from "@tremor/react";
 import {NumberUtils} from "@util/NumberUtils";
 import {useSession} from "next-auth/react";
 import {LoadingComponent} from "@components";
+import dayjs from "dayjs";
 
+const {RangePicker} = DatePicker;
 type Movie = {
     id: string,
     movieName: string,
@@ -53,7 +55,15 @@ const DashBoard = () => {
                 .catch((error) => {
                     setMovie([])
                 });
+            if(values.date !== undefined){
+                fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovieFromDate?movieId=${values.movie}&branchId=${formValues.branch}&startDate=${values.date[0].format('YYYY-MM-DD')}&endDate=${values.date[1].format('YYYY-MM-DD')}`)
+                    .then((response)=> setMovie(response.data))
+                    .catch((e)=>{
+                        setMovie([])
+                    });
+            }
         }
+
     }
     const handleTotalChange = () => {
         formTotal.submit();
@@ -87,9 +97,9 @@ const DashBoard = () => {
         const ws = XLSX.utils.json_to_sheet(ws_data, {header: ws_header, origin: "A3"});
         XLSX.utils.sheet_add_aoa(ws, ws_info, {origin: "C1"});
         XLSX.utils.sheet_add_json(ws, [totalRow], {header: ws_header, skipHeader: true, origin: -1});
-        for(let i = 0 ; i<=5 ; i++){
-            if(!ws["!cols"]) ws["!cols"] = [];
-            if(!ws["!cols"][i]) ws["!cols"][i] = {wch: 12};
+        for (let i = 0; i <= 5; i++) {
+            if (!ws["!cols"]) ws["!cols"] = [];
+            if (!ws["!cols"][i]) ws["!cols"][i] = {wch: 12};
         }
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
@@ -141,10 +151,10 @@ const DashBoard = () => {
                                     <Select
                                         placeholder="Chọn năm"
                                         allowClear
-                                        options={rootYear?.map((s: any,idx:number) => ({
+                                        options={rootYear?.map((s: any, idx: number) => ({
                                             label: s.year,
                                             value: s.year,
-                                            key:idx
+                                            key: idx
                                         }))}
                                         onChange={handleTotalChange}
                                     ></Select>
@@ -173,17 +183,19 @@ const DashBoard = () => {
                                 style={{
                                     maxWidth: 'none',
                                 }}
+                                layout={"inline"}
                             >
                                 <Form.Item
                                     name="movie"
                                     label="Phim"
+                                    style={{width: "700px"}}
                                 >
                                     <SearchSelect
                                         placeholder="Chọn phim"
                                         onChange={handleMovieChange}
                                         enableClear={false}
                                     >
-                                        {rootMovie?.map((s: any,idx:number) => (
+                                        {rootMovie?.map((s: any, idx: number) => (
                                             <SearchSelectItem
                                                 value={s.id}
                                                 key={idx}
@@ -192,6 +204,19 @@ const DashBoard = () => {
                                             </SearchSelectItem>
                                         ))}
                                     </SearchSelect>
+                                </Form.Item>
+                                <Form.Item
+                                    name="date"
+                                    label="Chọn Ngày"
+                                >
+                                    <RangePicker
+                                        onCalendarChange={(val) => {
+                                            setFormValues({...formValues, data: val});
+                                        }}
+
+                                        format={"DD-MM-YYYY"}
+                                    />
+
                                 </Form.Item>
                             </Form>
                             <div>
@@ -216,7 +241,8 @@ const DashBoard = () => {
                             />
                         </Card>
                     </div>
-                </div> : <LoadingComponent/>
+                </div>
+                : <LoadingComponent/>
             }
         </div>
     );
