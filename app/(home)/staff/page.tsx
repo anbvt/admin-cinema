@@ -1,14 +1,16 @@
 'use client'
 import { fetchAPI } from "@hooks";
 import { Title } from "@tremor/react";
+import { errorNotification, successNotification } from "@util/Notification";
+import { validateMessages } from "@util/ValidateMessages";
 import type { TableColumnsType } from "antd";
 import { Button, Card, Form, Input, Select, Space, Table } from "antd";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { useRouter } from 'next/navigation'
+import { AiFillEdit, AiOutlineUserDelete } from "react-icons/ai";
 import { checkError } from "../../../util/Error";
-import { errorNotification, successNotification } from "@util/Notification";
+import { ClearOutlined, FormOutlined, UserAddOutlined } from "@ant-design/icons";
 
 interface DataType {
     key: React.Key;
@@ -48,14 +50,14 @@ const Staff = () => {
             key: 'action',
             render: (_, record) => (
                 <Space size="middle">
-                    <Link href={`/staff?id=${record.id}`}>Edit</Link>
+                    <Link href={`/staff?id=${record.id}`}><AiFillEdit /></Link>
                     <a onClick={() => {
                         fetchAPI.post("/staff/updateStatus", record).then(rs => {
                             successNotification("Xoá thành công")
                         }).catch(e => {
                             errorNotification(checkError(e.response.data.message, e.response.data.param) || "Something went wrong")
                         })
-                    }}>Remove</a>
+                    }}><AiOutlineUserDelete /></a>
                 </Space>
             ),
         }
@@ -92,41 +94,48 @@ const Staff = () => {
                                 style={{
                                     maxWidth: 'none'
                                 }}
+                                validateMessages={validateMessages}
                                 size="middle"
                             >
                                 <Form.Item
                                     name="id"
                                     label="Mã nhân viên"
+                                    rules={[{ required: true }]}
                                 >
                                     <Input />
                                 </Form.Item>
                                 <Form.Item
                                     name="name"
                                     label="Tên nhân viên"
+                                    rules={[{ required: true }]}
                                 >
                                     <Input />
                                 </Form.Item>
                                 <Form.Item
                                     name="password"
                                     label="Mật khẩu"
+                                    rules={[{ required: true }, { type: 'string', min: 8, max: 10 }]}
                                 >
-                                    <Input type="password" />
+                                    <Input.Password />
                                 </Form.Item>
                                 <Form.Item
                                     name="email"
                                     label="Email"
+                                    rules={[{ required: true }, { type: 'email' }]}
                                 >
-                                    <Input />
+                                    <Input type="email" />
                                 </Form.Item>
                                 <Form.Item
                                     name="phone"
                                     label="Số điện thoại"
+                                    rules={[{ required: true }, { type: 'string', min: 10, max: 11 }]}
                                 >
-                                    <Input />
+                                    <Input type="number" />
                                 </Form.Item>
                                 <Form.Item
                                     name="gender"
                                     label="Giới tính"
+                                    rules={[{ required: true }]}
                                 >
                                     <Select
                                         placeholder="Chọn giới tính"
@@ -136,12 +145,14 @@ const Staff = () => {
                                 <Form.Item
                                     name="birthday"
                                     label="Ngày sinh"
+                                    rules={[{ required: true }]}
                                 >
                                     <Input type="date" />
                                 </Form.Item>
                                 <Form.Item
                                     name="branchId"
                                     label="Chi nhánh"
+                                    rules={[{ required: true }]}
                                 >
                                     <Select
                                         placeholder="Chọn chi nhánh"
@@ -155,6 +166,7 @@ const Staff = () => {
                                     name="role"
                                     label="Vai trò"
                                     initialValue={1}
+                                    rules={[{ required: true }]}
                                 >
                                     <Select
                                         placeholder="Chọn vai trò"
@@ -162,7 +174,7 @@ const Staff = () => {
                                     />
                                 </Form.Item>
                                 <hr className="pb-3" />
-                                <Button className="mr-3" loading={loading} onClick={() => formStaff.submit()} size="middle">Tạo</Button>
+                                <Button className="mr-3" loading={loading} onClick={() => formStaff.submit()} size="large"><UserAddOutlined /></Button>
                                 <Button className="mr-3" loading={loading} onClick={() => {
                                     const staff = formStaff.getFieldsValue();
                                     if (staff.id) {
@@ -176,11 +188,11 @@ const Staff = () => {
                                             errorNotification(checkError(e.response.data.message, e.response.data.param) || "Something went wrong")
                                         })
                                     }
-                                }}>Cập nhật</Button>
+                                }} size="large"><FormOutlined /></Button>
                                 <Button className="mr-3" onClick={() => {
                                     router.push("/staff")
                                     formStaff.resetFields()
-                                }}>Mới</Button>
+                                }} size="large"><ClearOutlined /></Button>
                             </Form >
                         </Card>
                     </Card>
