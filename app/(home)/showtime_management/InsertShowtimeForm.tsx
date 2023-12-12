@@ -3,6 +3,7 @@ import React, {useEffect, useState} from "react";
 import {fetchAPI} from "@hooks";
 import moment from "moment/moment";
 import {IoAddCircleSharp} from "react-icons/io5";
+import {Dayjs} from "dayjs";
 
 interface InsertShowtimeFormProps {
     branchOfStaff: string,
@@ -16,6 +17,7 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
     const [rooms, setRooms] = useState<any>([]);
     const [movieAndLanguage, setMovieAndLanguage] = useState<any>([]);
     const [selectRoomDisable, setSelectRoomDisable] = useState<boolean>(true);
+    const [startTime, setStartTime] = useState<string>();
     const [form] = Form.useForm();
 
     useEffect(() => {
@@ -41,7 +43,7 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
     };
 
     const handleAddShowtimeIsOk = (values: any) => {
-        values.startTime = moment().format('HH:mm:ss');
+        values.startTime = startTime;
         fetchAPI.post("/showtime/createShowTime", {...values}).then(() => {
             notification.success({message: 'Thêm xuất chiếu thành công!'});
             setOpen(false);
@@ -57,6 +59,11 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
         setOpen(false);
         setSelectRoomDisable(true);
         form.resetFields();
+    };
+
+    const timePickerOnChange = (time: Dayjs | null, timeString: string) => {
+        console.log(timeString)
+        setStartTime(timeString);
     };
 
     return (
@@ -146,7 +153,7 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
                             name="startTime"
                             rules={[{required: true, message: 'Vui lòng nhập giờ chiếu!'}]}
                         >
-                            <TimePicker/>
+                            <TimePicker onChange={(time: Dayjs | null, timeString: string) => timePickerOnChange(time, timeString)}/>
                         </Form.Item>
                     </Space>
 

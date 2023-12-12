@@ -14,6 +14,8 @@ import dayjs from "dayjs";
 import {DateUtils} from "@util/DateUtils";
 import {NumberUtils} from "@util/NumberUtils";
 import {useSession} from "next-auth/react";
+import {ColumnsType} from "antd/es/table";
+import {DataType} from "csstype";
 
 const {Option} = Select;
 
@@ -26,6 +28,7 @@ const EditableTable: React.FC = () => {
     const [editingKey, setEditingKey] = useState<number>();
     const [removed, setRemoved] = useState<number>();
     const [added, setAdded] = useState<boolean>();
+    const [filterRoooms, setFilterRooms] = useState<any>([]);
     const {data: session} = useSession();
     const branchOfStaff: string = session?.user.branchId;
 
@@ -34,7 +37,7 @@ const EditableTable: React.FC = () => {
         const init = async () => {
             const response = await fetchAPI(`/showtime/get-by-branch?branchId=${branchOfStaff}`);
             response.data.forEach((item: Item) => {
-                item.showDate = DateUtils.formatDate(new Date(moment(item.showDate).toDate()))
+                item.showDate = DateUtils.formatDate(moment(item.showDate).toDate())
                 item.price = NumberUtils.formatCurrency(item.price as number);
                 item.movieAndLanguage = `${item.languageOfMovieId} - ${item.movieName} (${item.languageName})`;
             })
@@ -69,6 +72,17 @@ const EditableTable: React.FC = () => {
         init()
     }, [branchOfStaff]);
 
+    useEffect(() => {
+        if (rooms.length > 0) {
+            const filters = rooms.map((room: any) => ({
+                text: room.name,
+                value: room.name,
+            }));
+
+            setFilterRooms(filters);
+        }
+    }, [rooms]);
+
     const isEditing = (record: Item) => record.id === editingKey;
 
     const edit = (record: Item) => {
@@ -102,7 +116,7 @@ const EditableTable: React.FC = () => {
                     languageOfMovieId: newData[index].languageOfMovieId,
                     dimensionId: newData[index].dimensionId,
                     showDate: newData[index].showDate,
-                    startTime: newData[index].startTime.format("HH:mm:ss"),
+                    startTime: newData[index].startTime,
                     price: newData[index].price.toString().replace(/[^\d.,]/g, '')
                 };
 
@@ -131,13 +145,14 @@ const EditableTable: React.FC = () => {
             });
     };
 
-
-    const columns = [
+    const columns: any = [
         {
             title: 'Phòng',
             dataIndex: 'roomName',
             width: '7%',
             editable: true,
+            filters: filterRoooms,
+            onFilter: (value: string, record: any) => record.roomName.indexOf(value) === 0,
         },
         {
             title: 'Phim - Ngôn ngữ',
@@ -174,6 +189,7 @@ const EditableTable: React.FC = () => {
             dataIndex: 'price',
             width: '10%',
             editable: true,
+            sorter: (a: any, b: any) => Number.parseFloat(a.price) - Number.parseFloat(b.price),
         },
         {
             title: '',

@@ -5,6 +5,8 @@ import {FormInstance} from 'antd/lib/form';
 const {Option} = Select;
 import dayjs from "dayjs";
 import {Item} from "./Item";
+import {DateUtils} from "@util/DateUtils";
+import moment from "moment";
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
     editing: boolean;
@@ -38,6 +40,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
                                                    }) => {
     const handleLanguageOfMovieChange = (value: number) => {
         record.languageOfMovieId = value;
+        console.log(new Date(`2023-01-01`));
     };
 
     const handleDimensionChange = (value: string) => {
@@ -95,9 +98,10 @@ const EditableCell: React.FC<EditableCellProps> = ({
                     )
                 break;
             case 'date':
-                return <DatePicker defaultValue={dayjs(`${record.showDate}`)}/>;
+                return <DatePicker defaultValue={dayjs(new Date(`${record.showDate}`), 'DD-MM-YYYY')}
+                                   format={'DD-MM-YYYY'}/>;
             case 'time':
-                return <TimePicker/>;
+                return <TimePicker />;
             default:
                 if (dataIndex === 'price')
                     return <Input
