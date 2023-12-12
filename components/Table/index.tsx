@@ -1,6 +1,6 @@
 'use client'
-import React, { useEffect, useState } from "react";
-import type { TableColumnsType } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import type { InputRef, TableColumnsType } from "antd";
 import { Button, Modal, Space, Table, DatePicker, Form, notification, Col, Row, Input } from "antd";
 import { fetchAPI, useFetch } from "@hooks";
 import moment from 'moment';
@@ -8,6 +8,9 @@ import type { NotificationPlacement } from 'antd/es/notification/interface';
 import "./index.css";
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { ColumnType, FilterConfirmProps } from "antd/es/table/interface";
+import { SearchOutlined } from "@ant-design/icons";
+import Highlighter from 'react-highlight-words';
 
 interface DataType {
     key: React.Key;
@@ -25,6 +28,7 @@ interface ExpandedDataType {
     createDate: string;
     updateDate: string;
 }
+type DataIndex = keyof DataType;
 const TableComponent = () => {
     const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,13 +42,16 @@ const TableComponent = () => {
     dayjs.extend(customParseFormat);
     const dateFormat = 'YYYY-MM-DD';
     const Context = React.createContext({ name: 'Default' });
+    const [searchText, setSearchText] = useState('');
+    const [searchedColumn, setSearchedColumn] = useState('');
+    const searchInput = useRef<InputRef>(null);
 
     useEffect(() => {
         fetchAPI.get("/movie")
-            .then((response: any) => {
+            .then(response => {
                 setdDataMovie(response.data);
             })
-            .catch((error: any) => {
+            .catch(error => {
             });
     }, [status]);
 
@@ -57,7 +64,7 @@ const TableComponent = () => {
     };
 
     const handleSave = () => {
-        form.validateFields().then((values: any) => {
+        form.validateFields().then((values) => {
             if (values.fromDate) {
                 const postData = {
                     startDate: values.fromDate[0] ? values.fromDate[0].format('YYYY-MM-DD') : null,
@@ -69,12 +76,12 @@ const TableComponent = () => {
                 };
 
                 fetchAPI.post("/movieConfig/update", postData)
-                    .then((response: any) => {
+                    .then(response => {
                         openNotification('topRight', api.success, 'Thành công');
                         setStatus(!status);
                         setIsModalOpen(false);
                     })
-                    .catch((error: any) => {
+                    .catch(error => {
                         openNotification('topRight', api.error, 'Thất bại');
                     });
             } else {
@@ -94,17 +101,112 @@ const TableComponent = () => {
     };
 
     useEffect(() => {
-        fetchAPI.get<ExpandedDataType[]>("/movieConfig/findAllByMovieId?movieId=" + expandedRowKeys[0]).then((a: any) => {
+        setDetailMovieConfig([]);
+        fetchAPI.get<ExpandedDataType[]>("/movieConfig/findAllByMovieId?movieId=" + expandedRowKeys[0]).then((a) => {
             setDetailMovieConfig(a.data.map((s: any) => { return { ...s, key: s.branchId } }));
         })
-    }, [expandedRowKeys, status])
+    }, [expandedRowKeys[0], status]);
+
+    const handleSearch = (
+        selectedKeys: string[],
+        confirm: (param?: FilterConfirmProps) => void,
+        dataIndex: DataIndex,
+    ) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+
+    const handleReset = (clearFilters: () => void) => {
+        clearFilters();
+        setSearchText('');
+    };
+
+    const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<DataType> => ({
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+                    style={{ marginBottom: 8, display: 'block' }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90, backgroundColor: "red" }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() => clearFilters && handleReset(clearFilters)}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({ closeDropdown: false });
+                            setSearchText((selectedKeys as string[])[0]);
+                            setSearchedColumn(dataIndex);
+                        }}
+                    >
+                        Filter
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            close();
+                        }}
+                    >
+                        close
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered: boolean) => (
+            <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        ),
+        onFilter: (value, record) =>
+            record[dataIndex]
+                .toString()
+                .toLowerCase()
+                .includes((value as string).toLowerCase()),
+        onFilterDropdownOpenChange: (visible) => {
+            if (visible) {
+                setTimeout(() => searchInput.current?.select(), 100);
+            }
+        },
+        render: (text) =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    });
+
+
     const expandedRowRender = () => {
         const columns: TableColumnsType<ExpandedDataType> = [
             { title: "Chi nhánh", dataIndex: "branchId", key: "branchId" },
-            { title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
-            { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
-            { title: "Ngày tạo", dataIndex: "createDate", key: "createDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
-            { title: "Ngày cập nhật", dataIndex: "updateDate", key: "updateDate", render: (text) => text ? moment(text).format("DD/MM/YYYY") : '' },
+            { title: "Ngày bắt đầu", dataIndex: "startDate", key: "startDate" },
+            { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate" },
+            { title: "Ngày tạo", dataIndex: "createDate", key: "createDate" },
+            { title: "Ngày cập nhật", dataIndex: "updateDate", key: "updateDate" },
             {
                 title: "Action",
                 render: (_, record) => (
@@ -117,8 +219,9 @@ const TableComponent = () => {
             },
         ];
         const data: ExpandedDataType[] = detailMovieConfig
-        return <div key={expandedRowKeys[0]}>
-            <Table columns={columns} dataSource={data} size="middle" pagination={false}/>
+        return <>
+            <Table columns={columns} dataSource={data} size="middle" pagination={false}
+            />
             <Modal title="" open={isModalOpen} onCancel={() => setIsModalOpen(false)} okButtonProps={{ style: { display: 'none' } }}>
                 {selectedRowData && (
                     <Form form={form} onFinish={handleSave} >
@@ -143,12 +246,12 @@ const TableComponent = () => {
                     </Form>
                 )}
             </Modal >
-        </div>;
+        </>;
     }
 
     const columns: TableColumnsType<DataType> = [
-        { title: "Mã Phim", dataIndex: "id", key: "id", width: '40%' },
-        { title: "Tên phim", dataIndex: "name", key: "name", width: '60%' },
+        { title: "Mã Phim", dataIndex: "id", key: "id", width: '40%', ...getColumnSearchProps('id') },
+        { title: "Tên phim", dataIndex: "name", key: "name", width: '60%', ...getColumnSearchProps('name') },
 
     ];
     const data: DataType[] = dataMovie.map((s: any) => { return { ...s, key: s?.id } });
