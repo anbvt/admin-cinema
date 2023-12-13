@@ -116,7 +116,7 @@ const EditableTable: React.FC = () => {
                     languageOfMovieId: newData[index].languageOfMovieId,
                     dimensionId: newData[index].dimensionId,
                     showDate: newData[index].showDate,
-                    startTime: newData[index].startTime,
+                    startTime: newData[index].startTime.format("HH:mm:ss"),
                     price: newData[index].price.toString().replace(/[^\d.,]/g, '')
                 };
 
