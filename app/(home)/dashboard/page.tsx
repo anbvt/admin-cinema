@@ -138,7 +138,7 @@ const DashBoard = () => {
                                             }))}
                                             onChange={handleTotalChange}
                                             style={{
-                                                width: "100px"
+                                                width: "200px"
                                             }}
                                         >
                                         </Select>}
