@@ -46,7 +46,7 @@ const Staff = () => {
         { title: "Số điện thoại", dataIndex: "phone", key: "phone" },
         { title: "Vai trò", dataIndex: "formatted_role", key: "formatted_role" },
         {
-            title: 'Action',
+            title: '',
             key: 'action',
             render: (_, record) => (
                 <Space size="middle">
