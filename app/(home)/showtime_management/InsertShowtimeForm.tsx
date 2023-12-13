@@ -51,7 +51,6 @@ const InsertShowtimeForm = (props: InsertShowtimeFormProps) => {
             form.resetFields();
         }).catch(error => {
             notification.error({message: 'Đã xảy ra lỗi khi thêm xuất chiếu. Vui lòng thử lại sau!'});
-            console.error('Lỗi khi xóa show time:', error);
         })
     };
 
