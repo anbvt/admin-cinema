@@ -116,11 +116,15 @@ const EditableTable: React.FC = () => {
                     languageOfMovieId: newData[index].languageOfMovieId,
                     dimensionId: newData[index].dimensionId,
                     showDate: newData[index].showDate,
-                    startTime: newData[index].startTime,
+                    startTime: newData[index].startTime.format("HH:mm:ss"),
                     price: newData[index].price.toString().replace(/[^\d.,]/g, '')
                 };
 
-                await fetchAPI.post("/showtime/updateShowTime", {...showTime});
+                fetchAPI.post("/showtime/updateShowTime", {...showTime}).then(() => {
+                    notification.success({message: 'Sửa xuất chiếu thành công!'});
+                }).catch(error => {
+                    notification.error({message: 'Đã xảy ra lỗi khi chỉnh sửa xuất chiếu. Vui lòng thử lại sau!'});
+                });
                 setData(newData);
                 setEditingKey(index);
             } else {
