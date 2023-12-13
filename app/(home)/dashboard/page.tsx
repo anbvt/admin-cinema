@@ -42,7 +42,7 @@ const DashBoard = () => {
         if (values.year != undefined && values.branch != undefined) {
             setFormValues(values);
             fetchAPI.get(`/v2/dashboard/findTotalPriceTicket?year=${values.year}&branchId=${values.branch}`)
-                .then((response) => setTotal(response.data))
+                .then((response) => setTotal(response.data.map((s:any)=>{ return {...s, ['Tổng giá']: s.totalPrice,month:"Tháng "+ s.month};})))
                 .catch((error) => {
                     setTotal([])
                 });
@@ -51,13 +51,13 @@ const DashBoard = () => {
     const onFinishMovie = (values: any) => {
         if (values.movie != undefined) {
             fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovie2?year=${formValues.year}&branchId=${formValues.branch}&movieId=${values.movie}`)
-                .then((response) => setMovie(response.data))
+                .then((response) => setMovie(response.data.map((s:any)=>{ return {...s, ['Tổng giá']: s.totalPrice,['Tổng vé']:s.totalTicket,month:"Tháng "+ s.month};})))
                 .catch((error) => {
                     setMovie([])
                 });
             if(values.date !== undefined){
                 fetchAPI.get(`/v2/dashboard/statisticsTicketPriceByMovieFromDate?movieId=${values.movie}&branchId=${formValues.branch}&startDate=${values.date[0].format('YYYY-MM-DD')}&endDate=${values.date[1].format('YYYY-MM-DD')}`)
-                    .then((response)=> setMovie(response.data))
+                    .then((response)=> setMovie(response.data.map((s:any)=>{ return {...s, ['Tổng giá']: s.totalPrice,['Tổng vé']:s.totalTicket,month:"Tháng "+ s.month};})))
                     .catch((e)=>{
                         setMovie([])
                     });
@@ -77,20 +77,20 @@ const DashBoard = () => {
             ["Tên Phim", movie[0].movieName],
             ["Chi nhánh", formValues.branch]
         ];
-        let ws_header = ["month", "totalTicket", "totalPrice", "year", "date"]
+        let ws_header = ["Tháng", "Tổng vé", "Tổng giá", "Năm", "date"]
         let ws_data = movie.map((n) => {
             return {
                 month: n.month,
-                totalTicket: n.totalTicket,
-                totalPrice: n.totalPrice,
+                "Tổng vé": n.totalTicket,
+                "Tổng giá": n.totalPrice,
                 year: n.year,
                 date: n.date
             }
         })
         const totalRow = {
             month: "Tổng Cộng",
-            totalTicket: {f: `SUM(B4:B${ws_data.length + 3})`, t: 'n'},
-            totalPrice: {f: `SUM(C4:C${ws_data.length + 3})`, t: 'n', z: '#,##0 VNĐ'},
+            "Tổng vé": {f: `SUM(B4:B${ws_data.length + 3})`, t: 'n'},
+            "Tổng giá": {f: `SUM(C4:C${ws_data.length + 3})`, t: 'n', z: '#,##0 VNĐ'},
             year: "",
             date: ""
         };
@@ -164,12 +164,13 @@ const DashBoard = () => {
                                 className="h-[500px]"
                                 data={total}
                                 index="month"
-                                categories={["totalPrice"]}
+                                categories={["Tổng giá"]}
                                 colors={["rose"]}
                                 showAnimation
                                 layout="vertical"
                                 valueFormatter={(number) => NumberUtils.formatCurrency(number || 0)}
                                 noDataText="Không có dữ liệu"
+                                yAxisWidth={100}
                             />
                         </Card>
 
@@ -232,7 +233,7 @@ const DashBoard = () => {
                                 className="h-72 mt-4"
                                 data={movie}
                                 index="month"
-                                categories={["totalTicket", 'totalPrice']}
+                                categories={["Tổng vé", 'Tổng giá']}
                                 colors={["indigo", "cyan"]}
                                 noDataText="Không có dữ liệu"
                                 valueFormatter={(number) => NumberUtils.formatCurrency(number || 0)}
