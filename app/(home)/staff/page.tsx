@@ -38,7 +38,15 @@ const Staff = () => {
     const columns: TableColumnsType<DataType> = [
         { title: "Mã nhân viên", dataIndex: "id", key: "id" },
         { title: "Tên nhân viên", dataIndex: "name", key: "name" },
-        { title: "Mật khẩu", dataIndex: "password", key: "password", className: "truncate w-[100px] max-w-[100px]" },
+        {
+            title: "Mật khẩu", dataIndex: "password", key: "password",
+            render: (text, record) => (
+                <Space size="middle">
+                    <Input.Password value={text} readOnly visibilityToggle={false} />
+                </Space>
+            ),
+            className: "truncate w-[100px] max-w-[100px]"
+        },
         { title: "Email", dataIndex: "email", key: "email", className: "truncate w-[150px] max-w-[150px]" },
         { title: "Giới tính", dataIndex: "formatted_gender", key: "formatted_gender" },
         { title: "Ngày sinh", dataIndex: "formatted_birthday", key: "formatted_birthday" },
