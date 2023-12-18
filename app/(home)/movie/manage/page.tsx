@@ -387,7 +387,7 @@ const ManageMovie = () => {
                             <Form.Item
                                 name="status"
                                 label="Trạng thái"
-                                hidden={true}
+                                hidden
                                 initialValues={'0'}
                             >
                             </Form.Item>
@@ -581,7 +581,7 @@ const ManageMovie = () => {
                             <Form.Item
                                 name="status"
                                 label="Trạng thái"
-                                hidden={true}
+                                hidden
                                 initialValues={'0'}
                             >
                             </Form.Item>
