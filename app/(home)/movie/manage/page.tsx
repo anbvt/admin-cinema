@@ -142,31 +142,6 @@ const ManageMovie = () => {
             key: 'time',
         },
         {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            filters: [
-                {text: 'Sắp Chiếu', value: '0'},
-                {text: 'Đang Chiếu', value: '1'},
-                {text: 'Hết Chiếu', value: '2'},
-            ],
-            render: (_, {key}) => (
-                <>
-                    {_ == '2' ?
-                        <Tag color='volcano' key={key}>
-                            Hết chiếu
-                        </Tag> :
-                        <Tag color={_ == '0' ? 'geekblue' : 'green'} key={key}>
-                            {_ == '0' ? 'Sắp Chiếu' : 'Đang Chiếu'}
-                        </Tag>
-                    }
-                </>
-            ),
-            onFilter: (value: any, record) => record.status.includes(value),
-            sorter: (a, b) => Number(a.status) - Number(b.status),
-            width: '10%'
-        },
-        {
             title: 'Giới hạn',
             dataIndex: 'limitage',
             key: 'limitage',
@@ -412,13 +387,9 @@ const ManageMovie = () => {
                             <Form.Item
                                 name="status"
                                 label="Trạng thái"
-                                rules={[{required: true, message: 'Vui lòng chọn trạng thái phim!'}]}
+                                hidden
+                                value={'0'}
                             >
-                                <Select placeholder="Trạng thái">
-                                    <Option value="0">Sắp chiếu</Option>
-                                    <Option value="1">Đang chiếu</Option>
-                                    <Option value="2">Hết chiếu</Option>
-                                </Select>
                             </Form.Item>
                             {/*Poster phim*/}
                             <Form.Item
@@ -472,7 +443,7 @@ const ManageMovie = () => {
                                 limitage: detailMovie.limitage,
                                 describe: detailMovie.describe,
                                 trailer: detailMovie.trailer,
-                                status: detailMovie.status,
+                                status: '0',
                                 countryid: detailMovie.countryid,
                                 yearofmanufacture: dayjs(String(detailMovie.yearofmanufacture), 'YYYY'),
                                 language: detailMovie?.language?.map((language: any) => language.id),
@@ -610,13 +581,9 @@ const ManageMovie = () => {
                             <Form.Item
                                 name="status"
                                 label="Trạng thái"
-                                rules={[{required: true, message: 'Vui lòng chọn trạng thái phim!'}]}
+                                hidden
+                                value={'0'}
                             >
-                                <Select placeholder="Trạng thái">
-                                    <Option value="0">Sắp chiếu</Option>
-                                    <Option value="1">Đang chiếu</Option>
-                                    <Option value="2">Hết chiếu</Option>
-                                </Select>
                             </Form.Item>
                             {/*Poster phim*/}
                             <Form.Item
