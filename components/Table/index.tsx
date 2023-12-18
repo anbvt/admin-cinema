@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useRef, useState } from "react";
 import type { InputRef, TableColumnsType } from "antd";
-import { Button, Modal, Space, Table, DatePicker, Form, notification, Col, Row, Input } from "antd";
+import { Button, Modal, Space, Table, DatePicker, Form, notification, Col, Row, Input, Tag } from "antd";
 import { fetchAPI, useFetch } from "@hooks";
 import moment from 'moment';
 import type { NotificationPlacement } from 'antd/es/notification/interface';
@@ -27,6 +27,7 @@ interface ExpandedDataType {
     endDate: string;
     createDate: string;
     updateDate: string;
+    status: string;
 }
 type DataIndex = keyof DataType;
 const TableComponent = () => {
@@ -198,8 +199,6 @@ const TableComponent = () => {
                 text
             ),
     });
-
-
     const expandedRowRender = () => {
         const columns: TableColumnsType<ExpandedDataType> = [
             { title: "Chi nhánh", dataIndex: "branchId", key: "branchId" },
@@ -207,6 +206,18 @@ const TableComponent = () => {
             { title: "Ngày kết thúc", dataIndex: "endDate", key: "endDate" },
             { title: "Ngày tạo", dataIndex: "createDate", key: "createDate" },
             { title: "Ngày cập nhật", dataIndex: "updateDate", key: "updateDate" },
+            {
+                title: "Trạng thái", dataIndex: "status", key: "status", render: (_, { key }) => (<>
+                    {_ != null ? (_ == '2' ?
+                        <Tag color='volcano' key={key}>
+                            Hết chiếu
+                        </Tag> :
+                        <Tag color={_ == '0' ? 'geekblue' : 'green'} key={key}>
+                            {_ == '0' ? 'Sắp Chiếu' : 'Đang Chiếu'}
+                        </Tag>) : <></>
+                    }
+                </>)
+            },
             {
                 title: "Action",
                 render: (_, record) => (
