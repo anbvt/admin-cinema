@@ -37,7 +37,9 @@ const EditableTable: React.FC = () => {
         const init = async () => {
             const response = await fetchAPI(`/showtime/get-by-branch?branchId=${branchOfStaff}`);
             response.data.forEach((item: Item) => {
-                item.showDate = DateUtils.formatDate(moment(item.showDate).toDate())
+                // item.showDate = DateUtils.formatDate(moment(item.showDate).toDate())
+                item.showDate = moment(item.showDate).format('DD-MM-YYYY');
+                // console.log(item.showDate)
                 item.price = NumberUtils.formatCurrency(item.price as number);
                 item.movieAndLanguage = `${item.languageOfMovieId} - ${item.movieName} (${item.languageName})`;
             })
@@ -86,10 +88,17 @@ const EditableTable: React.FC = () => {
     const isEditing = (record: Item) => record.id === editingKey;
 
     const edit = (record: Item) => {
+        console.log(record.id)
+
+        // Convert show date format
+        const initialDate = moment(record.showDate.toString(), 'DD-MM-YYYY');
+        const convertedDate = initialDate.format('YYYY-MM-DDTHH:mm:ssZ');
+
+
         const priceFormated =
             parseFloat(record.price.toString().replace(/[^\d.,-]/g, '').replace('.', ''))
 
-        record.showDate = moment(record.showDate);
+        record.showDate = moment(convertedDate);
         record.startTime = dayjs(`${record.startTime}`, 'HH:mm:ss');
         record.price = priceFormated;
         form.setFieldsValue({...record});
@@ -144,8 +153,7 @@ const EditableTable: React.FC = () => {
                 notification.success({message: 'Xóa show time thành công!'});
             })
             .catch(error => {
-                notification.error({message: 'Đã xảy ra lỗi khi xóa show time. Vui lòng thử lại sau!'})
-                console.error('Lỗi khi xóa show time:', error);
+                notification.error({message: error.response.data.message});
             });
     };
 
@@ -211,7 +219,8 @@ const EditableTable: React.FC = () => {
                     </span>
                 ) : (
                     <span className={"flex justify-center gap-1"}>
-                        <Button className={"border-0"} aria-disabled={editingKey !== undefined} onClick={() => edit(record)}>
+                        <Button className={"border-0"} aria-disabled={editingKey !== undefined}
+                                onClick={() => edit(record)}>
                             <MdEditSquare/>
                         </Button>
                         <Button
@@ -274,7 +283,9 @@ const EditableTable: React.FC = () => {
                 branchOfStaff={branchOfStaff}
                 branchName={data[0]?.branchName}
                 dimension={dimension}
-                setAdded={(check: boolean) => {setAdded(check)}}
+                setAdded={(check: boolean) => {
+                    setAdded(check)
+                }}
             />
             <Form form={form} component={false}>
                 <Table
